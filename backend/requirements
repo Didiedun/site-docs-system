@@ -1,7 +1,0 @@
-fastapi
-uvicorn[standard]
-python-multipart
-mpxj
-JPype1
-google-genai
-pydantic
