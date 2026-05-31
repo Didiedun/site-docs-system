@@ -19,6 +19,12 @@ async function trySave(repo: DocumentRepository, doc: GeneratedDocument): Promis
   }
 }
 
+// Strips any markdown code fence by keeping only the first {...} / [...] block.
+function parseModelJson(text: string): Record<string, unknown> {
+  const cleaned = text.replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
+  return JSON.parse(cleaned) as Record<string, unknown>;
+}
+
 export function parseProgramme(ports: Ports, file: File): Promise<ProgrammeSnapshot> {
   return ports.programme.parse(file);
 }
@@ -40,18 +46,19 @@ export async function generateMinit(
   return trySave(ports.documents, { projectId: args.projectId, kind: 'minit', body });
 }
 
-// Strips any markdown code fence by keeping only the first {...} / [...] block.
-function parseModelJson(text: string): Record<string, unknown> {
-  const cleaned = text.replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
-  return JSON.parse(cleaned) as Record<string, unknown>;
-}
-
 export async function generateSiteDiary(
   ports: Ports,
-  args: { projectId: string; notes: Record<string, unknown>; snapshot?: ProgrammeSnapshot },
+  args: {
+    projectId: string;
+    notes: Record<string, unknown>;
+    header?: { tajuk?: string; bil?: string };
+    snapshot?: ProgrammeSnapshot;
+  },
 ): Promise<{ doc: GeneratedDocument; html: string }> {
   const bodyJson = await ports.llm.generateBody('diary', args.notes);
   const data = parseModelJson(bodyJson);
+  if (args.header?.tajuk) data.tajuk = args.header.tajuk;
+  if (args.header?.bil) data.bil = args.header.bil;
   if (args.snapshot) {
     data.status = {
       rancang: String(args.snapshot.overall.plan ?? ''),
