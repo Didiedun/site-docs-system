@@ -38,15 +38,16 @@ export async function generateSiteDiary(
   args: { projectId: string; notes: Record<string, unknown>; snapshot?: ProgrammeSnapshot },
 ): Promise<{ doc: GeneratedDocument; html: string }> {
   const bodyJson = await ports.llm.generateBody('diary', args.notes);
-  const narrative = JSON.parse(bodyJson);
-  const data = {
-    ...args.notes,
-    ...narrative,
-    status: args.snapshot
-      ? { rancang: String(args.snapshot.overall.plan ?? ''), sebenar: String(args.snapshot.overall.actual ?? '') }
-      : undefined,
-  };
+  const fenced = bodyJson.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  const data = JSON.parse(fenced ? fenced[1] : bodyJson) as Record<string, unknown>;
+  if (args.snapshot) {
+    data.status = {
+      rancang: String(args.snapshot.overall.plan ?? ''),
+      sebenar: String(args.snapshot.overall.actual ?? ''),
+    };
+  }
   const html = ports.diary.render(data);
+
   const doc = await ports.documents.save({ projectId: args.projectId, kind: 'diary', body: bodyJson });
   return { doc, html };
 }
