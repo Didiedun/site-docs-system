@@ -64,23 +64,26 @@ _MINIT_BASE = (
 )
 
 _DIARY_BASE = (
-    "Anda menyusun Laporan Harian Tapak Bina UTM daripada nota mentah harian penyelia. "
-    "Ekstrak maklumat daripada nota dan hasilkan SATU objek JSON SAHAJA (tiada teks lain, "
-    "tiada pagar kod). Gunakan kunci berikut:\n"
-    '- "tajuk": tajuk projek (string)\n'
-    '- "tarikh": tarikh laporan (string, cth "30 Mei 2026")\n'
-    '- "hari": hari (string, cth "Sabtu")\n'
-    '- "cuaca": {"pagi": "Cerah|Mendung|Hujan", "petang": "Cerah|Mendung|Hujan"}\n'
-    '- "perlaksanaan": senarai {"masa": "Pagi|Petang", "butiran": [ayat kerja]}\n'
-    '- "tenaga": {"senarai": [["label cth P07 - Siling", "bilangan"]], "total": "jumlah"}\n'
-    '- "bahan": [["nama bahan", "kuantiti"]] (kosong jika tiada)\n'
-    '- "catatan": [isu/catatan penyelia]\n'
-    '- "arahan": [arahan kepada kontraktor]\n'
-    '- "penyelarasan": penyelarasan bersama pelanggan (string)\n'
-    "Jangan reka data. Jika tiada dalam nota, tinggalkan kosong. "
-    "Jangan hasilkan status/peratus kemажуan."
+    "Anda menyusun Laporan Harian Tapak Bina UTM daripada nota mentah penyelia. "
+    "JANGAN salin nota bulat-bulat; TULIS SEMULA sebagai ayat kerja profesional yang ringkas. "
+    "Hasilkan SATU objek JSON SAHAJA (tiada teks/pagar kod lain) dengan kunci:\n"
+    '- "tajuk","tarikh","hari": string\n'
+    '- "skop": {"Senibina":bool,"Mekanikal":bool,"Elektrik":bool,"Awam":bool,"Lanskap":bool} (tandakan disiplin kerja hari itu)\n'
+    '- "cuaca": {"pagi":"cerah|mendung|hujan","petang":"cerah|mendung|hujan"}\n'
+    '- "tenaga": {"senarai": [["peranan/tred cth Tukang Siling (P07)","bilangan"]]}\n'
+    '- "perlaksanaan": senarai {"masa":"Pagi|Petang","butiran":[ayat kerja],"kuantiti":"","kualiti":""}\n'
+    '- "bahan": [["nama bahan/penghantaran","bil dibekal"]]\n'
+    '- "pengurusan": {"keselamatan":bool,"kebersihan":bool,"papan tanda":bool,"pakaian kerja":bool,"waktu kerja":bool}\n'
+    '- "catatan": [catatan penyelia], "arahan": [arahan kepada kontraktor]\n'
+    '- "penyelarasan": string (penyelarasan bersama pelanggan)\n'
+    '- "ujian": {"keterangan":"","keputusan":""}; "komen": string (mingguan, biasanya kosong)\n'
+    "Untuk perkara yang tiada dalam nota, tinggalkan kosong/false. Jangan reka data. "
+    "Jangan hasilkan status/peratus kemajuan."
+), 'catatan' (catatan penyelia), 'arahan' (arahan kepada "
+    "kontraktor — tanda sebagai cadangan), 'penyelarasan' (penyelarasan bersama pelanggan). "
+    "JANGAN reka kiraan pekerja/jentera/bahan atau status — itu data tapak/.mpp. "
+    "Output JSON sahaja, tanpa teks lain."
 )
-
 
 
 def build_prompt(doc_type: str, payload: Dict[str, Any]) -> Tuple[str, str]:
