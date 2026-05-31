@@ -1,4 +1,4 @@
-import { DocumentKind, GeneratedDocument, ProgrammeSnapshot } from '../domain/entities';
+import { GeneratedDocument, ProgrammeSnapshot } from '../domain/entities';
 import { DiaryRenderer, DocumentRepository, LlmGateway, ProgrammeParser } from '../domain/ports';
 
 export interface Ports {
