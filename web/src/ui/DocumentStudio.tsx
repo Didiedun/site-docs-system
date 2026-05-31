@@ -8,9 +8,11 @@ type Kind = 'memo' | 'minit' | 'diary';
 
 export function DocumentStudio({ projectId }: { projectId: string }) {
   const ports = useMemo(() => buildPorts(), []);
-  const [kind, setKind] = useState<Kind>('memo');
+  const [kind, setKind] = useState<Kind>('diary');
   const [memoType, setMemoType] = useState(MEMO_TYPES[0].id);
   const [story, setStory] = useState('');
+  const [tajuk, setTajuk] = useState('Bumbung Akademik - Pakej 2');
+  const [bil, setBil] = useState('');
   const [snapshot, setSnapshot] = useState<ProgrammeSnapshot | null>(null);
   const [busy, setBusy] = useState(false);
   const [output, setOutput] = useState('');
@@ -25,7 +27,7 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
     if (!file) return;
     setBusy(true); setError('');
     try { setSnapshot(await parseProgramme(ports, file)); }
-    catch (err) { setError(String(err)); }
+    catch (err) { setError(err instanceof Error ? err.message : JSON.stringify(err)); }
     finally { setBusy(false); }
   }
 
@@ -40,22 +42,23 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
         const doc = await generateMinit(ports, { projectId, points: notes });
         setOutput(doc.body);
       } else {
-        const { html } = await generateSiteDiary(ports, { projectId, notes, snapshot: snapshot ?? undefined });
+        const { html } = await generateSiteDiary(ports, { projectId, notes, header: { tajuk, bil }, snapshot: snapshot ?? undefined });
         setDiaryHtml(html);
       }
-    } catch (err) { setError(String(err)); }
+    } catch (err) { setError(err instanceof Error ? err.message : JSON.stringify(err)); }
     finally { setBusy(false); }
   }
 
   const box: React.CSSProperties = { border: '1px solid #ddd', borderRadius: 8, padding: 16, marginTop: 16 };
+  const field: React.CSSProperties = { width: '100%', padding: 6, marginTop: 4, marginBottom: 8 };
 
   return (
     <div style={box}>
       <label>Dokumen:&nbsp;
         <select value={kind} onChange={(e) => setKind(e.target.value as Kind)}>
+          <option value="diary">Site Diary</option>
           <option value="memo">Memo</option>
           <option value="minit">Minit Mesyuarat</option>
-          <option value="diary">Site Diary</option>
         </select>
       </label>
       {kind === 'memo' && (
@@ -65,21 +68,30 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
           </select>
         </label>
       )}
+      {kind === 'diary' && (
+        <div style={{ marginTop: 12 }}>
+          <label>Tajuk Kerja</label>
+          <input value={tajuk} onChange={(e) => setTajuk(e.target.value)} style={field} placeholder="cth Bumbung Akademik - Pakej 2" />
+          <label>Bil (No. laporan)</label>
+          <input value={bil} onChange={(e) => setBil(e.target.value)} style={field} placeholder="cth 12" />
+        </div>
+      )}
       {selectedType && kind === 'memo' && (
         <p style={{ color: '#777', fontSize: 13 }}>Perlu: {selectedType.factHints.join(' · ')}</p>
       )}
       {needsProgramme && (
-        <p><input type="file" accept=".mpp" onChange={onMpp} /> {snapshot && `✓ .mpp parsed — keseluruhan ${snapshot.overall.actual}% / rancang ${snapshot.overall.plan}%`}</p>
+        <p><input type="file" accept=".mpp" onChange={onMpp} /> {snapshot && `✓ .mpp parsed — ${snapshot.overall.actual}% / rancang ${snapshot.overall.plan}%`}</p>
       )}
-      <textarea value={story} onChange={(e) => setStory(e.target.value)} rows={8}
-        placeholder="Site story / poin mesyuarat / nota harian…" style={{ width: '100%', marginTop: 8 }} />
+      <label>{kind === 'diary' ? 'Nota harian (aktiviti, pekerja, isu…)' : 'Site story / poin mesyuarat'}</label>
+      <textarea value={story} onChange={(e) => setStory(e.target.value)} rows={9}
+        placeholder="Tulis nota mentah anda di sini…" style={{ width: '100%', marginTop: 4 }} />
       <div style={{ marginTop: 8 }}>
-        <button onClick={onGenerate} disabled={busy || !story}>{busy ? 'Menjana…' : 'Jana badan'}</button>
+        <button onClick={onGenerate} disabled={busy || !story}>{busy ? 'Menjana…' : 'Jana'}</button>
       </div>
-      {error && <pre style={{ color: '#b00' }}>{error}</pre>}
+      {error && <pre style={{ color: '#b00', whiteSpace: 'pre-wrap' }}>{error}</pre>}
       {output && <pre style={{ whiteSpace: 'pre-wrap', ...box }}>{output}</pre>}
       {diaryHtml && (
-        <iframe title="diary" srcDoc={diaryHtml} style={{ width: '100%', height: 900, border: '1px solid #ccc', marginTop: 16 }} />
+        <iframe title="diary" srcDoc={diaryHtml} style={{ width: '100%', height: 1000, border: '1px solid #ccc', marginTop: 16 }} />
       )}
     </div>
   );
