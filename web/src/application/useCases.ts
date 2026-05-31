@@ -8,31 +8,38 @@ export interface Ports {
   diary: DiaryRenderer;
 }
 
-/** Parse the .mpp into a progress snapshot (numbers + variances + status lists). */
+// Persistence is optional: if saving to Supabase fails (tables/policies/project
+// row not set up yet), still return the generated document so the UI shows it.
+async function trySave(repo: DocumentRepository, doc: GeneratedDocument): Promise<GeneratedDocument> {
+  try {
+    return await repo.save(doc);
+  } catch (e) {
+    console.warn('Document not persisted (continuing):', e);
+    return doc;
+  }
+}
+
 export function parseProgramme(ports: Ports, file: File): Promise<ProgrammeSnapshot> {
   return ports.programme.parse(file);
 }
 
-/** Memo: type + site story (+ snapshot when kelewatan) -> generated body. */
 export async function generateMemo(
   ports: Ports,
   args: { projectId: string; memoType: string; siteStory: Record<string, unknown>; snapshot?: ProgrammeSnapshot },
 ): Promise<GeneratedDocument> {
   const payload = { memoType: args.memoType, ...args.siteStory, programme: args.snapshot ?? null };
   const body = await ports.llm.generateBody('memo', payload);
-  return ports.documents.save({ projectId: args.projectId, kind: 'memo', memoType: args.memoType, body });
+  return trySave(ports.documents, { projectId: args.projectId, kind: 'memo', memoType: args.memoType, body });
 }
 
-/** Minit: raw meeting points -> generated body sections. */
 export async function generateMinit(
   ports: Ports,
   args: { projectId: string; points: Record<string, unknown> },
 ): Promise<GeneratedDocument> {
   const body = await ports.llm.generateBody('minit', args.points);
-  return ports.documents.save({ projectId: args.projectId, kind: 'minit', body });
+  return trySave(ports.documents, { projectId: args.projectId, kind: 'minit', body });
 }
 
-/** Site diary: day notes -> narrative; status filled from the snapshot; rendered to HTML. */
 export async function generateSiteDiary(
   ports: Ports,
   args: { projectId: string; notes: Record<string, unknown>; snapshot?: ProgrammeSnapshot },
@@ -47,7 +54,6 @@ export async function generateSiteDiary(
     };
   }
   const html = ports.diary.render(data);
-
-  const doc = await ports.documents.save({ projectId: args.projectId, kind: 'diary', body: bodyJson });
+  const doc = await trySave(ports.documents, { projectId: args.projectId, kind: 'diary', body: bodyJson });
   return { doc, html };
 }
