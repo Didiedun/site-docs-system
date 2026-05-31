@@ -1,7 +1,4 @@
-"""Server-side Gemini call (google-genai SDK). The key stays on the server,
-loaded from the GEMINI_API_KEY environment variable — never hard-coded,
-never committed, never sent to the browser.
-"""
+"""Server-side Gemini call (google-genai SDK). Key loaded from GEMINI_API_KEY."""
 import os
 
 from google import genai
@@ -17,8 +14,7 @@ def _get_client() -> "genai.Client":
     return _client
 
 
-def generate(system: str, user: str, max_tokens: int = 2000) -> str:
-    # Free-tier models: gemini-2.5-flash / gemini-2.5-flash-lite. Set via env.
+def generate(system: str, user: str, max_tokens: int = 8192) -> str:
     model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
     resp = _get_client().models.generate_content(
         model=model,
@@ -27,6 +23,9 @@ def generate(system: str, user: str, max_tokens: int = 2000) -> str:
             system_instruction=system,
             max_output_tokens=max_tokens,
             temperature=0.3,
+            # 2.5 Flash is a thinking model; thinking spends output tokens and can
+            # truncate the JSON. Disable it so the full answer fits.
+            thinking_config=types.ThinkingConfig(thinking_budget=0),
         ),
     )
     return resp.text or ""
