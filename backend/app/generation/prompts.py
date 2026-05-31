@@ -64,13 +64,23 @@ _MINIT_BASE = (
 )
 
 _DIARY_BASE = (
-    "Anda mendraf BAHAGIAN BERTULIS Laporan Harian Tapak Bina UTM daripada nota mentah "
-    "harian penyelia. Hasilkan JSON dengan kunci: 'butiran' (senarai ayat kerja kemas, "
-    "boleh dikumpul ikut blok), 'catatan' (catatan penyelia), 'arahan' (arahan kepada "
-    "kontraktor — tanda sebagai cadangan), 'penyelarasan' (penyelarasan bersama pelanggan). "
-    "JANGAN reka kiraan pekerja/jentera/bahan atau status — itu data tapak/.mpp. "
-    "Output JSON sahaja, tanpa teks lain."
+    "Anda menyusun Laporan Harian Tapak Bina UTM daripada nota mentah harian penyelia. "
+    "Ekstrak maklumat daripada nota dan hasilkan SATU objek JSON SAHAJA (tiada teks lain, "
+    "tiada pagar kod). Gunakan kunci berikut:\n"
+    '- "tajuk": tajuk projek (string)\n'
+    '- "tarikh": tarikh laporan (string, cth "30 Mei 2026")\n'
+    '- "hari": hari (string, cth "Sabtu")\n'
+    '- "cuaca": {"pagi": "Cerah|Mendung|Hujan", "petang": "Cerah|Mendung|Hujan"}\n'
+    '- "perlaksanaan": senarai {"masa": "Pagi|Petang", "butiran": [ayat kerja]}\n'
+    '- "tenaga": {"senarai": [["label cth P07 - Siling", "bilangan"]], "total": "jumlah"}\n'
+    '- "bahan": [["nama bahan", "kuantiti"]] (kosong jika tiada)\n'
+    '- "catatan": [isu/catatan penyelia]\n'
+    '- "arahan": [arahan kepada kontraktor]\n'
+    '- "penyelarasan": penyelarasan bersama pelanggan (string)\n'
+    "Jangan reka data. Jika tiada dalam nota, tinggalkan kosong. "
+    "Jangan hasilkan status/peratus kemажуan."
 )
+
 
 
 def build_prompt(doc_type: str, payload: Dict[str, Any]) -> Tuple[str, str]:
