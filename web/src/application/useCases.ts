@@ -8,8 +8,8 @@ export interface Ports {
   diary: DiaryRenderer;
 }
 
-// Persistence is optional: if saving to Supabase fails (tables/policies/project
-// row not set up yet), still return the generated document so the UI shows it.
+// Persistence is optional: if saving to Supabase fails, still return the
+// generated document so the UI shows it.
 async function trySave(repo: DocumentRepository, doc: GeneratedDocument): Promise<GeneratedDocument> {
   try {
     return await repo.save(doc);
@@ -40,13 +40,18 @@ export async function generateMinit(
   return trySave(ports.documents, { projectId: args.projectId, kind: 'minit', body });
 }
 
+// Strips any markdown code fence by keeping only the first {...} / [...] block.
+function parseModelJson(text: string): Record<string, unknown> {
+  const cleaned = text.replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
+  return JSON.parse(cleaned) as Record<string, unknown>;
+}
+
 export async function generateSiteDiary(
   ports: Ports,
   args: { projectId: string; notes: Record<string, unknown>; snapshot?: ProgrammeSnapshot },
 ): Promise<{ doc: GeneratedDocument; html: string }> {
   const bodyJson = await ports.llm.generateBody('diary', args.notes);
-  const fenced = bodyJson.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-  const data = JSON.parse(fenced ? fenced[1] : bodyJson) as Record<string, unknown>;
+  const data = parseModelJson(bodyJson);
   if (args.snapshot) {
     data.status = {
       rancang: String(args.snapshot.overall.plan ?? ''),
