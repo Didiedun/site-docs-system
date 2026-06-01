@@ -1,5 +1,6 @@
 // Faithful UTM "Laporan Harian Tapak Bina". Single 1px lines via grid gaps
 // (dark background shows through), so adjacent cells never double up.
+import { LB_CSS, renderLaporanBergambar } from './laporanBergambar';
 type Dict = Record<string, any>;
 const esc = (s: any) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' } as Dict)[c]);
 const bx = (v: any) => `<span class="bx">${esc(v)}</span>`;
@@ -11,6 +12,7 @@ const JENTERA: [string, string][] = [['excavator', 'conc. Mixer'], ['backhoe', '
 
 export function renderDiary(d: Dict): string {
   const logo = d.logoUrl || '/utm-logo.png';
+  const lbHtml = renderLaporanBergambar(d.photoEntries, { projek: d.tajuk, disiplin: d.lbDisiplin, tajukLajur: d.lbTajukLajur });
   const skop = d.skop || {}, cu = d.cuaca || {}, jen = d.jentera || {}, peng = d.pengurusan || {}, st = d.status || {};
   const jv = (k: string) => (k ? (jen[k] ?? jen[k.toLowerCase()] ?? '') : '');
   const tenaga: [string, string][] = (d.tenaga && d.tenaga.senarai && d.tenaga.senarai.length)
@@ -56,6 +58,7 @@ export function renderDiary(d: Dict): string {
   .sig{height:42px} .ttd{text-align:right;padding:0 6px 3px}
   .foot{font-size:7.5px;font-style:italic;padding:3px 2px}
   @media print{@page{size:A4;margin:5mm}.page{width:auto;margin:0;padding:5mm}}
+  ${LB_CSS}
   </style></head><body><div class="page">
   <div class="head"><img src="${logo}" alt="UTM"><div class="dept">Jabatan Timbalan Naib<br>Canselor (Pembangunan)</div><div class="ref">B-BPA/SP/LHTB<br>Pin. /2024</div></div>
   <div class="frame"><div class="stack">
@@ -108,5 +111,6 @@ export function renderDiary(d: Dict): string {
     </div>
   </div></div>
   <div class="foot">* tandakan [ &#10003; ] ~ patuh ; [ X ] ~ tidak patuh ; ** pengisian secara mingguan oleh Pegawai Yang Bertanggungjawab</div>
+  ${lbHtml}
   </div></body></html>`;
 }
