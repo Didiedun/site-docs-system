@@ -51,7 +51,7 @@ export async function generateSiteDiary(
   args: {
     projectId: string;
     notes: Record<string, unknown>;
-    header?: { tajuk?: string; bil?: string };
+    header?: { tajuk?: string; bil?: string; tarikh?: string; hari?: string };
     snapshot?: ProgrammeSnapshot;
   },
 ): Promise<{ doc: GeneratedDocument; html: string }> {
@@ -59,6 +59,8 @@ export async function generateSiteDiary(
   const data = parseModelJson(bodyJson);
   if (args.header?.tajuk) data.tajuk = args.header.tajuk;
   if (args.header?.bil) data.bil = args.header.bil;
+  if (args.header?.tarikh) data.tarikh = args.header.tarikh;
+  if (args.header?.hari) data.hari = args.header.hari;
   if (args.snapshot) {
     data.status = {
       rancang: String(args.snapshot.overall.plan ?? ''),
