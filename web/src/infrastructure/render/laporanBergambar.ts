@@ -8,10 +8,11 @@ export function renderLaporanBergambar(
   entries: Dict[] | undefined,
   opts: { projek?: string; disiplin?: string; tajukLajur?: string } = {},
 ): string {
-  if (!entries || !entries.length) return '';
+  const withPhotos = (entries || []).filter((e) => e.photos && e.photos.length);
+  if (!withPhotos.length) return '';
   const dis = opts.disiplin || 'AWAM';
   const col = opts.tajukLajur || 'Gambar keadaan di tapak';
-  const rows = entries.map((e, i) => {
+  const rows = withPhotos.map((e, i) => {
     const imgs = e.photos || [];
     const w = imgs.length > 1 ? '48%' : '72%';
     const cells = imgs.map((p: Dict) => `<img style="max-width:${w}" src="${p.dataUrl}"/>`).join('');
