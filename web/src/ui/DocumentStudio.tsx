@@ -4,7 +4,14 @@ import { ProgrammeSnapshot } from '../domain/entities';
 import { buildPorts } from '../composition';
 import { generateMemo, generateMinit, generateSiteDiary, parseProgramme } from '../application/useCases';
 
-type Kind = 'memo' | 'minit' | 'diary';
+type Kind = 'diary' | 'memo' | 'minit';
+const HARI = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
+const BULAN = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
+function fromISO(iso: string) {
+  if (!iso) return { tarikh: '', hari: '' };
+  const d = new Date(iso + 'T00:00:00');
+  return { tarikh: `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`, hari: HARI[d.getDay()] };
+}
 
 export function DocumentStudio({ projectId }: { projectId: string }) {
   const ports = useMemo(() => buildPorts(), []);
@@ -13,12 +20,14 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
   const [story, setStory] = useState('');
   const [tajuk, setTajuk] = useState('Bumbung Akademik - Pakej 2');
   const [bil, setBil] = useState('');
+  const [tarikhISO, setTarikhISO] = useState('');
   const [snapshot, setSnapshot] = useState<ProgrammeSnapshot | null>(null);
   const [busy, setBusy] = useState(false);
   const [output, setOutput] = useState('');
   const [diaryHtml, setDiaryHtml] = useState('');
   const [error, setError] = useState('');
 
+  const { tarikh, hari } = fromISO(tarikhISO);
   const selectedType = MEMO_TYPES.find((t) => t.id === memoType);
   const needsProgramme = (kind === 'memo' && selectedType?.needsProgramme) || kind === 'diary';
 
@@ -42,57 +51,75 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
         const doc = await generateMinit(ports, { projectId, points: notes });
         setOutput(doc.body);
       } else {
-        const { html } = await generateSiteDiary(ports, { projectId, notes, header: { tajuk, bil }, snapshot: snapshot ?? undefined });
+        const { html } = await generateSiteDiary(ports, { projectId, notes, header: { tajuk, bil, tarikh, hari }, snapshot: snapshot ?? undefined });
         setDiaryHtml(html);
       }
     } catch (err) { setError(err instanceof Error ? err.message : JSON.stringify(err)); }
     finally { setBusy(false); }
   }
 
-  const box: React.CSSProperties = { border: '1px solid #ddd', borderRadius: 8, padding: 16, marginTop: 16 };
-  const field: React.CSSProperties = { width: '100%', padding: 6, marginTop: 4, marginBottom: 8 };
+  function printDiary() {
+    const f = document.getElementById('diaryFrame') as HTMLIFrameElement | null;
+    f?.contentWindow?.focus();
+    f?.contentWindow?.print();
+  }
 
   return (
-    <div style={box}>
-      <label>Dokumen:&nbsp;
-        <select value={kind} onChange={(e) => setKind(e.target.value as Kind)}>
-          <option value="diary">Site Diary</option>
-          <option value="memo">Memo</option>
-          <option value="minit">Minit Mesyuarat</option>
-        </select>
-      </label>
+    <div className="card">
+      <h2>Jana Dokumen</h2>
+      <p className="lead">Pilih jenis dokumen, isi maklumat, dan jana. Header rasmi &amp; No. Rujukan kekal pada templat anda.</p>
+
+      <div className="field">
+        <div className="seg">
+          <button className={kind === 'diary' ? 'active' : ''} onClick={() => setKind('diary')}>Site Diary</button>
+          <button className={kind === 'memo' ? 'active' : ''} onClick={() => setKind('memo')}>Memo</button>
+          <button className={kind === 'minit' ? 'active' : ''} onClick={() => setKind('minit')}>Minit</button>
+        </div>
+      </div>
+
       {kind === 'memo' && (
-        <label>&nbsp;&nbsp;Jenis:&nbsp;
+        <div className="field"><label>Jenis Memo</label>
           <select value={memoType} onChange={(e) => setMemoType(e.target.value)}>
             {MEMO_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
           </select>
-        </label>
-      )}
-      {kind === 'diary' && (
-        <div style={{ marginTop: 12 }}>
-          <label>Tajuk Kerja</label>
-          <input value={tajuk} onChange={(e) => setTajuk(e.target.value)} style={field} placeholder="cth Bumbung Akademik - Pakej 2" />
-          <label>Bil (No. laporan)</label>
-          <input value={bil} onChange={(e) => setBil(e.target.value)} style={field} placeholder="cth 12" />
+          {selectedType && <p className="hint">Perlu: {selectedType.factHints.join(' · ')}</p>}
         </div>
       )}
-      {selectedType && kind === 'memo' && (
-        <p style={{ color: '#777', fontSize: 13 }}>Perlu: {selectedType.factHints.join(' · ')}</p>
+
+      {kind === 'diary' && (
+        <>
+          <div className="field"><label>Tajuk Kerja</label>
+            <input value={tajuk} onChange={(e) => setTajuk(e.target.value)} placeholder="cth Bumbung Akademik - Pakej 2" /></div>
+          <div className="grid2">
+            <div className="field"><label>Tarikh</label>
+              <input type="date" value={tarikhISO} onChange={(e) => setTarikhISO(e.target.value)} /></div>
+            <div className="field"><label>Hari (auto)</label>
+              <input value={hari} readOnly placeholder="—" /></div>
+          </div>
+          <div className="field"><label>Bil (No. laporan)</label>
+            <input value={bil} onChange={(e) => setBil(e.target.value)} placeholder="cth 12" /></div>
+        </>
       )}
+
       {needsProgramme && (
-        <p><input type="file" accept=".mpp" onChange={onMpp} /> {snapshot && `✓ .mpp parsed — ${snapshot.overall.actual}% / rancang ${snapshot.overall.plan}%`}</p>
+        <div className="field"><label>Programme (.mpp) — opsyenal, untuk status %</label>
+          <input type="file" accept=".mpp" onChange={onMpp} />
+          {snapshot && <p className="hint">✓ Dibaca — sebenar {snapshot.overall.actual}% / rancang {snapshot.overall.plan}%</p>}
+        </div>
       )}
-      <label>{kind === 'diary' ? 'Nota harian (aktiviti, pekerja, isu…)' : 'Site story / poin mesyuarat'}</label>
-      <textarea value={story} onChange={(e) => setStory(e.target.value)} rows={9}
-        placeholder="Tulis nota mentah anda di sini…" style={{ width: '100%', marginTop: 4 }} />
-      <div style={{ marginTop: 8 }}>
-        <button onClick={onGenerate} disabled={busy || !story}>{busy ? 'Menjana…' : 'Jana'}</button>
+
+      <div className="field"><label>{kind === 'diary' ? 'Nota harian (aktiviti, pekerja, isu…)' : 'Site story / poin mesyuarat'}</label>
+        <textarea value={story} onChange={(e) => setStory(e.target.value)} placeholder="Tulis nota mentah anda di sini…" /></div>
+
+      <div className="btn-row">
+        <button className="btn btn-primary" onClick={onGenerate} disabled={busy || !story}>{busy ? 'Menjana…' : 'Jana Dokumen'}</button>
+        {diaryHtml && <button className="btn" onClick={printDiary}>Cetak / Simpan PDF</button>}
+        {output && <button className="btn" onClick={() => navigator.clipboard?.writeText(output)}>Salin Teks</button>}
       </div>
-      {error && <pre style={{ color: '#b00', whiteSpace: 'pre-wrap' }}>{error}</pre>}
-      {output && <pre style={{ whiteSpace: 'pre-wrap', ...box }}>{output}</pre>}
-      {diaryHtml && (
-        <iframe title="diary" srcDoc={diaryHtml} style={{ width: '100%', height: 1000, border: '1px solid #ccc', marginTop: 16 }} />
-      )}
+
+      {error && <div className="err">{error}</div>}
+      {output && <div className="output">{output}</div>}
+      {diaryHtml && <div className="frame-wrap"><iframe id="diaryFrame" title="diary" srcDoc={diaryHtml} style={{ width: '100%', height: 1000, border: 0 }} /></div>}
     </div>
   );
 }
