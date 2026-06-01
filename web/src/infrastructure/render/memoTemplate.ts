@@ -26,8 +26,11 @@ export function renderMemo(d: Dict): string {
     .map((p: any) => `<p class="cl">${br(p)}</p>`).join('');
 
   const cogan = `<p class="cogan">&ldquo; MALAYSIA MADANI &rdquo;</p><p class="cogan">&ldquo; BERKHIDMAT UNTUK NEGARA &rdquo;</p>`;
+  const roleLines = [d.jawatanTtd, d.unitTtd].filter(Boolean).map((x: any) => br(x)).join('<br>');
+  const emailLine = d.emelTtd ? `${roleLines ? '<br>' : ''}&#9993; ${esc(d.emelTtd)}` : '';
+  const roleBlock = roleLines || emailLine ? `<div class="sigrole">${roleLines}${emailLine}</div>` : '';
   const sig = d.namaTtd
-    ? `<p class="amanah">Saya yang menjalankan amanah,</p><div class="sigsp"></div><p class="signame">(${esc(d.namaTtd)})</p>${d.jawatanTtd ? `<p class="sigrole">${br(d.jawatanTtd)}</p>` : ''}`
+    ? `<p class="amanah">Saya yang menjalankan amanah,</p><div class="sigsp"></div><p class="signame">(${esc(d.namaTtd)})</p>${roleBlock}`
     : '';
   const sk = `<div class="sk"><div class="skh">s.k.</div><div class="skb">${br(d.sk || '')}</div></div>`;
   const photoPage = renderLaporanBergambar(d.photoEntries, { projek: d.projek, disiplin: d.lbDisiplin, tajukLajur: d.lbTajukLajur });
@@ -39,7 +42,7 @@ export function renderMemo(d: Dict): string {
   .top .lhs{display:flex;align-items:center;gap:10px} .top img{height:46px} .dept{font-size:10px;line-height:1.25}
   .memo{font:800 30px/1 Arial;letter-spacing:1px}
   .bil{text-align:right;font-weight:800;font-size:12px;margin:10px 0 2px}
-  .ref{display:grid;grid-template-columns:auto auto 1fr;gap:0 6px;justify-content:end;font-size:11px;margin-bottom:10px}
+  .ref{display:grid;grid-template-columns:auto auto auto;gap:3px 6px;width:max-content;margin-left:auto;font-size:11px;margin-bottom:10px}
   .meta{display:grid;grid-template-columns:92px 10px 1fr;row-gap:6px;border-bottom:2px solid #1b1b1b;padding-bottom:10px}
   .meta .lab{font-weight:700} .meta .val{font-weight:700} .meta .full{grid-column:1 / -1;font-weight:400}
   .body{padding-top:10px}

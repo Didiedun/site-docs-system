@@ -17,6 +17,7 @@ function fromISO(iso: string) {
 const PROJEK_DEFAULT =
   'UTM-PEMBAIKAN & PENGGANTIAN KEMASAN DAN KELENGKAPAN BUMBUNG KOLEJ KEDIAMAN DAN BANGUNAN AKADEMIK DI KAMPUS UTM JOHOR BAHRU, JOHOR\nPAKEJ 2 : BANGUNAN AKADEMIK & BANGUNAN SOKONGAN FAKULTI KEJURUTERAAN ELEKTRIK DAN FAKULTI KEJURUTERAAN KIMIA & KEJURUTERAAN TENAGA';
 const SK_DEFAULT = 'Pengarah Seksyen Kontrak & Perolehan\nFail';
+const UNIT_DEFAULT = 'Seksyen Pembangunan\nBahagian Pengurusan Aset\nJabatan Timbalan Naib Canselor (Pembangunan)';
 const Sec = ({ children }: { children: any }) => (
   <div style={{ fontWeight: 700, fontSize: 13, margin: '18px 0 8px', paddingTop: 12, borderTop: '1px solid #e6e0d8' }}>{children}</div>
 );
@@ -47,7 +48,9 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
   const [mTajuk, setMTajuk] = useState('');
   const [tuan, setTuan] = useState(true);
   const [namaTtd, setNamaTtd] = useState('');
-  const [jawatanTtd, setJawatanTtd] = useState('');
+  const [jawatanTtd, setJawatanTtd] = useState('Pengarah');
+  const [unitTtd, setUnitTtd] = useState(UNIT_DEFAULT);
+  const [emelTtd, setEmelTtd] = useState('');
   const [sk, setSk] = useState(SK_DEFAULT);
 
   // Laporan Bergambar (shared by memo + diary)
@@ -56,6 +59,7 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
   const [entries, setEntries] = useState<LbEntry[]>([]);
 
   const [memoHtml, setMemoHtml] = useState('');
+  const [editing, setEditing] = useState(false);
 
   const { tarikh, hari } = fromISO(tarikhISO);
   const selectedType = MEMO_TYPES.find((t) => t.id === memoType);
@@ -85,7 +89,7 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
   const lbPayload = () => ({ entries: entries.map((e) => ({ catatan: e.catatan, photos: e.photos })), disiplin: lbDisiplin, tajukLajur: lbTajukLajur });
 
   async function onGenerate() {
-    setBusy(true); setError(''); setOutput(''); setDiaryHtml(''); setMemoHtml('');
+    setBusy(true); setError(''); setOutput(''); setDiaryHtml(''); setMemoHtml(''); setEditing(false);
     try {
       const notes = { notes: story };
       if (kind === 'memo') {
@@ -93,7 +97,7 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
           projectId, memoType, siteStory: notes, snapshot: snapshot ?? undefined,
           header: {
             bil: mBil, noRujukan, tarikh: fromISO(mTarikhISO).tarikh, daripada, kepada, projek, tajuk: mTajuk, tuan,
-            namaTtd, jawatanTtd, sk,
+            namaTtd, jawatanTtd, unitTtd, emelTtd, sk,
             lbDisiplin, lbTajukLajur, photoEntries: entries.map((e) => ({ catatan: e.catatan, photos: e.photos })),
           },
         });
@@ -109,8 +113,22 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
     finally { setBusy(false); }
   }
 
+  function toggleEdit() {
+    const id = diaryHtml ? 'diaryFrame' : memoHtml ? 'memoFrame' : '';
+    const f = id ? (document.getElementById(id) as HTMLIFrameElement | null) : null;
+    const doc = f?.contentDocument;
+    if (!doc) return;
+    const on = !editing;
+    doc.designMode = on ? 'on' : 'off';
+    if (doc.body) doc.body.style.outline = on ? '2px dashed #7a0c2e' : '';
+    setEditing(on);
+  }
+
   function printFrame(id: string) {
     const f = document.getElementById(id) as HTMLIFrameElement | null;
+    const doc = f?.contentDocument;
+    if (doc) { doc.designMode = 'off'; if (doc.body) doc.body.style.outline = ''; }
+    setEditing(false);
     f?.contentWindow?.focus();
     f?.contentWindow?.print();
   }
@@ -205,14 +223,17 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
           <Sec>Tandatangan &amp; Salinan (anda isi)</Sec>
           <div className="grid2">
             <div className="field"><label>Nama penandatangan</label><input value={namaTtd} onChange={(e) => setNamaTtd(e.target.value)} /></div>
-            <div className="field"><label>Jawatan</label><textarea style={{ minHeight: 70 }} value={jawatanTtd} onChange={(e) => setJawatanTtd(e.target.value)} /></div>
+            <div className="field"><label>Jawatan</label><input value={jawatanTtd} onChange={(e) => setJawatanTtd(e.target.value)} /></div>
           </div>
+          <div className="field"><label>Unit / Bahagian (kekal)</label><textarea style={{ minHeight: 64 }} value={unitTtd} onChange={(e) => setUnitTtd(e.target.value)} /></div>
+          <div className="field"><label>Emel</label><input value={emelTtd} onChange={(e) => setEmelTtd(e.target.value)} /></div>
           <div className="field"><label>s.k. (salinan kepada)</label><textarea style={{ minHeight: 60 }} value={sk} onChange={(e) => setSk(e.target.value)} /></div>
         </>
       )}
 
       <div className="btn-row">
         <button className="btn btn-primary" onClick={onGenerate} disabled={busy || !story}>{busy ? 'Menjana… (backend mungkin sedang bangun ~30s)' : 'Jana Dokumen'}</button>
+        {(diaryHtml || memoHtml) && <button className="btn" onClick={toggleEdit}>{editing ? 'Selesai Edit' : 'Edit'}</button>}
         {diaryHtml && <button className="btn" onClick={() => printFrame('diaryFrame')}>Cetak / Simpan PDF</button>}
         {memoHtml && <button className="btn" onClick={() => printFrame('memoFrame')}>Cetak / Simpan PDF</button>}
         {output && <button className="btn" onClick={() => navigator.clipboard?.writeText(output)}>Salin Teks</button>}
