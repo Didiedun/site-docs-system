@@ -5,12 +5,25 @@ import { buildPorts } from '../composition';
 import { generateMemo, generateMinit, generateSiteDiary, parseProgramme } from '../application/useCases';
 
 type Kind = 'diary' | 'memo' | 'minit';
+type Photo = { name: string; dataUrl: string };
 const HARI = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
 const BULAN = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
 function fromISO(iso: string) {
   if (!iso) return { tarikh: '', hari: '' };
   const d = new Date(iso + 'T00:00:00');
   return { tarikh: `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`, hari: HARI[d.getDay()] };
+}
+const escHtml = (s: string) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' } as Record<string, string>)[c]);
+function buildPhotoReport(photos: Photo[], tajuk: string): string {
+  const cells = photos.map((p, i) => `<figure><img src="${p.dataUrl}"/><figcaption>Gambar ${i + 1}${p.name ? ' &mdash; ' + escHtml(p.name) : ''}</figcaption></figure>`).join('');
+  return `<!doctype html><html lang="ms"><head><meta charset="utf-8"><style>
+    body{font-family:Arial,sans-serif;margin:0;padding:10mm;color:#1d1b1a}
+    h1{font-size:15px;text-align:center;margin:0 0 2px} .sub{text-align:center;font-size:10px;margin-bottom:10px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    figure{margin:0;border:1px solid #888;padding:5px} figure img{width:100%;height:auto;display:block}
+    figcaption{font-size:10px;text-align:center;padding-top:4px}
+    @media print{@page{size:A4;margin:8mm}}
+  </style></head><body><h1>LAPORAN BERGAMBAR</h1><div class="sub">${escHtml(tajuk || '')}</div><div class="grid">${cells}</div></body></html>`;
 }
 
 export function DocumentStudio({ projectId }: { projectId: string }) {
@@ -21,6 +34,8 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
   const [tajuk, setTajuk] = useState('Bumbung Akademik - Pakej 2');
   const [bil, setBil] = useState('');
   const [tarikhISO, setTarikhISO] = useState('');
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [photoHtml, setPhotoHtml] = useState('');
   const [snapshot, setSnapshot] = useState<ProgrammeSnapshot | null>(null);
   const [busy, setBusy] = useState(false);
   const [output, setOutput] = useState('');
@@ -40,13 +55,23 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
     finally { setBusy(false); }
   }
 
+  function onPhotos(e: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    Promise.all(files.map((f) => new Promise<Photo>((resolve) => {
+      const r = new FileReader();
+      r.onload = () => resolve({ name: f.name, dataUrl: String(r.result) });
+      r.readAsDataURL(f);
+    }))).then((loaded) => setPhotos((prev) => [...prev, ...loaded]));
+  }
+
   async function onGenerate() {
-    setBusy(true); setError(''); setOutput(''); setDiaryHtml('');
+    setBusy(true); setError(''); setOutput(''); setDiaryHtml(''); setPhotoHtml('');
     try {
       const notes = { notes: story };
       if (kind === 'memo') {
         const doc = await generateMemo(ports, { projectId, memoType, siteStory: notes, snapshot: snapshot ?? undefined });
         setOutput(doc.body);
+        if (photos.length) setPhotoHtml(buildPhotoReport(photos, tajuk));
       } else if (kind === 'minit') {
         const doc = await generateMinit(ports, { projectId, points: notes });
         setOutput(doc.body);
@@ -58,8 +83,8 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
     finally { setBusy(false); }
   }
 
-  function printDiary() {
-    const f = document.getElementById('diaryFrame') as HTMLIFrameElement | null;
+  function printFrame(id: string) {
+    const f = document.getElementById(id) as HTMLIFrameElement | null;
     f?.contentWindow?.focus();
     f?.contentWindow?.print();
   }
@@ -78,12 +103,18 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
       </div>
 
       {kind === 'memo' && (
-        <div className="field"><label>Jenis Memo</label>
-          <select value={memoType} onChange={(e) => setMemoType(e.target.value)}>
-            {MEMO_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-          </select>
-          {selectedType && <p className="hint">Perlu: {selectedType.factHints.join(' · ')}</p>}
-        </div>
+        <>
+          <div className="field"><label>Jenis Memo</label>
+            <select value={memoType} onChange={(e) => setMemoType(e.target.value)}>
+              {MEMO_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+            </select>
+            {selectedType && <p className="hint">Perlu: {selectedType.factHints.join(' · ')}</p>}
+          </div>
+          <div className="field"><label>Gambar (Laporan Bergambar) — opsyenal</label>
+            <input type="file" accept="image/*" multiple onChange={onPhotos} />
+            {photos.length > 0 && <p className="hint">{photos.length} gambar dipilih. <button className="btn" style={{ padding: '2px 8px', marginLeft: 6 }} onClick={() => setPhotos([])}>Kosongkan</button></p>}
+          </div>
+        </>
       )}
 
       {kind === 'diary' && (
@@ -112,14 +143,16 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
         <textarea value={story} onChange={(e) => setStory(e.target.value)} placeholder="Tulis nota mentah anda di sini…" /></div>
 
       <div className="btn-row">
-        <button className="btn btn-primary" onClick={onGenerate} disabled={busy || !story}>{busy ? 'Menjana…' : 'Jana Dokumen'}</button>
-        {diaryHtml && <button className="btn" onClick={printDiary}>Cetak / Simpan PDF</button>}
+        <button className="btn btn-primary" onClick={onGenerate} disabled={busy || !story}>{busy ? 'Menjana… (backend mungkin sedang bangun ~30s)' : 'Jana Dokumen'}</button>
+        {diaryHtml && <button className="btn" onClick={() => printFrame('diaryFrame')}>Cetak / Simpan PDF</button>}
+        {photoHtml && <button className="btn" onClick={() => printFrame('photoFrame')}>Cetak Laporan Bergambar</button>}
         {output && <button className="btn" onClick={() => navigator.clipboard?.writeText(output)}>Salin Teks</button>}
       </div>
 
       {error && <div className="err">{error}</div>}
       {output && <div className="output">{output}</div>}
       {diaryHtml && <div className="frame-wrap"><iframe id="diaryFrame" title="diary" srcDoc={diaryHtml} style={{ width: '100%', height: 1000, border: 0 }} /></div>}
+      {photoHtml && <div className="frame-wrap"><iframe id="photoFrame" title="laporan" srcDoc={photoHtml} style={{ width: '100%', height: 520, border: 0 }} /></div>}
     </div>
   );
 }
