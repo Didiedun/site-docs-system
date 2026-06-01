@@ -12,7 +12,7 @@ export default function App() {
       </header>
       <div className="gold-rule" />
       <main className="app-main"><DocumentStudio projectId="demo-project" /></main>
-      <footer className="app-footer">Dibangunkan oleh <b>didiedun x hadirahafiqah</b></footer>
+      <footer className="app-footer">Dibangunkan oleh <b>Daniel Dun</b> untuk <b>Hadirah</b></footer>
     </div>
   );
 }
