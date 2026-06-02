@@ -138,15 +138,15 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
         });
         setMemoHtml(html);
       } else if (kind === 'minit') {
-        const pengerusi = chair.filter((c) => c.nama.trim()).map((c) => `- ${c.nama}${c.jawatan ? ` (${c.jawatan})` : ''}`);
-        const utmGroups: { tajuk: string; ahli: string[] }[] = [];
+        const pengerusi = chair.filter((c) => c.nama.trim()).map((c) => ({ nama: c.nama, jawatan: c.jawatan }));
+        const utmGroups: { tajuk: string; ahli: { nama: string; jawatan: string }[] }[] = [];
         utmA.filter((a) => a.nama.trim()).forEach((a) => {
           const sec = a.seksyen.trim() || 'Pihak UTM';
           let g = utmGroups.find((x) => x.tajuk === sec);
           if (!g) { g = { tajuk: sec, ahli: [] }; utmGroups.push(g); }
-          g.ahli.push(`${g.ahli.length + 1}. ${a.nama}${a.jawatan ? ` (${a.jawatan})` : ''}`);
+          g.ahli.push({ nama: a.nama, jawatan: a.jawatan });
         });
-        const kontraktor = konA.filter((k) => k.nama.trim()).map((k, i) => `${i + 1}. ${k.nama}${k.jawatan ? ` (${k.jawatan})` : ''}`);
+        const kontraktor = konA.filter((k) => k.nama.trim()).map((k) => ({ nama: k.nama, jawatan: k.jawatan }));
         const tandatangan = sigs.filter((sg) => sg.nama.trim() || sg.jawatan.trim()).map((sg) => ({ peranan: sg.peranan, nama: sg.nama, jawatan: sg.jawatan }));
         const dot = mmTarikhISO ? mmTarikhISO.split('-').reverse().join('.') : '';
         const { html } = await generateMinit(ports, {
