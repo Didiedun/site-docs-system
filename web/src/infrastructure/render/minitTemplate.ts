@@ -63,7 +63,8 @@ function sigCell(s: MinitSig): string {
 
 export function renderMinit(d: MinitData): string {
   const title = d.title || 'MINIT MESYUARAT PEMANTAUAN KHAS';
-  const logo = d.logoUrl ? `<img class="logo" src="${d.logoUrl}" alt="UTM" />` : '';
+  const logoSrc = d.logoUrl || '/utm-logo.png';
+  const logo = `<img class="logo" src="${logoSrc}" alt="UTM" />`;
 
   const att = (label: string, arr?: string[]) =>
     (arr && arr.length)
