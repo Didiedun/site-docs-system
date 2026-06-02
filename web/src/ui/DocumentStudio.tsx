@@ -14,8 +14,6 @@ function fromISO(iso: string) {
   const d = new Date(iso + 'T00:00:00');
   return { tarikh: `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`, hari: HARI[d.getDay()] };
 }
-const PROJEK_DEFAULT =
-  'UTM-PEMBAIKAN & PENGGANTIAN KEMASAN DAN KELENGKAPAN BUMBUNG KOLEJ KEDIAMAN DAN BANGUNAN AKADEMIK DI KAMPUS UTM JOHOR BAHRU, JOHOR\nPAKEJ 2 : BANGUNAN AKADEMIK & BANGUNAN SOKONGAN FAKULTI KEJURUTERAAN ELEKTRIK DAN FAKULTI KEJURUTERAAN KIMIA & KEJURUTERAAN TENAGA';
 const SK_DEFAULT = 'Pengarah Seksyen Kontrak & Perolehan\nFail';
 const UNIT_DEFAULT = 'Seksyen Pembangunan\nBahagian Pengurusan Aset\nJabatan Timbalan Naib Canselor (Pembangunan)';
 const Sec = ({ children }: { children: any }) => (
@@ -50,7 +48,7 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
   const [mTarikhISO, setMTarikhISO] = useState('');
   const [daripada, setDaripada] = useState('PENGARAH SEKSYEN PEMBANGUNAN');
   const [kepada, setKepada] = useState('');
-  const [projek, setProjek] = useState(PROJEK_DEFAULT);
+  const [projek, setProjek] = useState('');
   const [mTajuk, setMTajuk] = useState('');
   const [tuan, setTuan] = useState(true);
   const [namaTtd, setNamaTtd] = useState('');

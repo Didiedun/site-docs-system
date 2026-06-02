@@ -24,6 +24,7 @@ export interface MinitData {
 }
 
 const esc = (s: unknown) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const escML = (s: unknown) => esc(s).replace(/\r?\n/g, '<br>');
 
 function isTableLike(x: any): boolean {
   return !!x && typeof x === 'object' && (Array.isArray(x.rows) || Array.isArray(x.headers));
@@ -159,7 +160,7 @@ export function renderMinit(d: MinitData): string {
 
     <table class="info">
       <tr>
-        <td class="tk" rowspan="4">Tajuk Kerja :<br><b>${esc(d.tajuk)}</b></td>
+        <td class="tk" rowspan="4">Tajuk Kerja :<br><b>${escML(d.tajuk)}</b></td>
         <td class="rc">Nama Kontraktor : <b>${esc(d.namaKontraktor)}</b></td>
       </tr>
       <tr><td class="rc">No. Sebutharga : <b>${esc(d.noSebutharga)}</b></td></tr>
