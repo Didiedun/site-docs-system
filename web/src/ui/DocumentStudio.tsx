@@ -69,12 +69,12 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
   const [showDoc, setShowDoc] = useState(false);
 
   // minit — header, attendance and signatures are user-entered; AI writes only the body
-  const [mmTitle, setMmTitle] = useState('MINIT MESYUARAT TAPAK');
-  const [mmTajuk, setMmTajuk] = useState(PROJEK_DEFAULT);
-  const [mmNamaKon, setMmNamaKon] = useState('UER VENTURES SDN BHD');
-  const [mmNoSeb, setMmNoSeb] = useState('TN/2025-16/D-1/SP/BPA');
-  const [mmTMula, setMmTMula] = useState('22 MEI 2025');
-  const [mmTTamat, setMmTTamat] = useState('20 MEI 2026');
+  const [mmTitle, setMmTitle] = useState('');
+  const [mmTajuk, setMmTajuk] = useState('');
+  const [mmNamaKon, setMmNamaKon] = useState('');
+  const [mmNoSeb, setMmNoSeb] = useState('');
+  const [mmTMulaISO, setMmTMulaISO] = useState('');
+  const [mmTTamatISO, setMmTTamatISO] = useState('');
   const [mmTarikhISO, setMmTarikhISO] = useState('');
   const [mmMasa, setMmMasa] = useState('');
   const [mmTempat, setMmTempat] = useState('Bilik Mesyuarat, BPA');
@@ -151,7 +151,7 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
         const dot = mmTarikhISO ? mmTarikhISO.split('-').reverse().join('.') : '';
         const { html } = await generateMinit(ports, {
           projectId, notes,
-          header: { title: mmTitle, tajuk: mmTajuk, namaKontraktor: mmNamaKon, noSebutharga: mmNoSeb, tarikhMula: mmTMula, tarikhTamat: mmTTamat, tarikh: dot, masa: mmMasa, tempat: mmTempat, bil: mmBil },
+          header: { title: mmTitle, tajuk: mmTajuk, namaKontraktor: mmNamaKon, noSebutharga: mmNoSeb, tarikhMula: fromISO(mmTMulaISO).tarikh, tarikhTamat: fromISO(mmTTamatISO).tarikh, tarikh: dot, masa: mmMasa, tempat: mmTempat, bil: mmBil },
           kehadiran: { pengerusi, utmGroups, kontraktor },
           tandatangan,
         });
@@ -267,8 +267,8 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
             <div className="field"><label>No. Sebutharga</label><input value={mmNoSeb} onChange={(e) => setMmNoSeb(e.target.value)} /></div>
           </div>
           <div className="grid2">
-            <div className="field"><label>Tarikh Mula Kerja</label><input value={mmTMula} onChange={(e) => setMmTMula(e.target.value)} /></div>
-            <div className="field"><label>Tarikh Tamat Kerja</label><input value={mmTTamat} onChange={(e) => setMmTTamat(e.target.value)} /></div>
+            <div className="field"><label>Tarikh Mula Kerja</label><input type="date" value={mmTMulaISO} onChange={(e) => setMmTMulaISO(e.target.value)} /></div>
+            <div className="field"><label>Tarikh Tamat Kerja</label><input type="date" value={mmTTamatISO} onChange={(e) => setMmTTamatISO(e.target.value)} /></div>
           </div>
           <div className="grid2">
             <div className="field"><label>Tarikh Mesyuarat</label><input type="date" value={mmTarikhISO} onChange={(e) => setMmTarikhISO(e.target.value)} /></div>
