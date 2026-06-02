@@ -27,7 +27,20 @@ _MEMO_TYPE_GUIDE = {
     "pemakluman": """Jenis: Memo Pemakluman atau Pentadbiran. Maklum atau minta perkara pentadbiran secara ringkas dan sopan.""",
 }
 
-_MINIT_BASE = """Anda mendraf BAHAGIAN ISI minit Mesyuarat Pemantauan Khas UTM dalam BM rasmi, daripada poin mentah. Output bahagian bernombor (Pendahuluan, Laporan Kemajuan, Isu, Punca, Tarikh Siap, Rumusan, Penutup) dengan lajur Status/Tindakan di mana sesuai. JANGAN hasilkan kotak maklumat projek, senarai kehadiran, atau blok tandatangan. Jangan reka fakta."""
+_MINIT_BASE = """Anda menyusun BAHAGIAN ISI Minit Mesyuarat Tapak/Pemantauan UTM dalam Bahasa Melayu rasmi, daripada poin/nota mentah penyelia. Hasilkan SATU objek JSON SAHAJA (tiada teks atau pagar kod lain) dengan kunci:
+- agenda: senarai ringkas tajuk agenda (string) yang disimpulkan daripada nota.
+- seksyen: senarai bahagian bernombor. Setiap bahagian ialah objek {"no":"1.0","tajuk":"...","status":"...","isi":[...]} di mana:
+   'no' = nombor (1.0, 2.0, 3.0, 4.0); 'tajuk' = tajuk bahagian; 'status' = catatan lajur Status/Tindakan (cth "Makluman", "Tindakan : Kontraktor", atau "");
+   'isi' = senarai blok, setiap satu salah satu daripada:
+       {"type":"item","label":"i.","text":"..."}  perkara bernombor (label cth i., ii., a., b.)
+       {"type":"item","label":"a.","text":"P03","sub":["...","..."]}  perkara dengan sub-poin — GUNAKAN untuk status mengikut blok: 'text' = nama blok, 'sub' = senarai baki kerja/catatan
+       {"type":"subhead","text":"2.1 ..."}  tajuk kecil
+       {"type":"para","text":"..."}  perenggan biasa tanpa label
+       {"type":"table","headers":["..."],"rows":[["..."]]}  jadual (cth Rancang/Sebenar/Status)
+Struktur lazim: 1.0 Pendahuluan (Makluman); 2.0 Laporan Kemajuan & Status Kerja (status semasa, isu pekerja/jentera, tindakan diperlukan, dan status mengikut blok sebagai item+sub); 3.0 Rumusan Mesyuarat (Makluman); 4.0 Penutup.
+GAYA: Huraikan setiap poin menjadi ayat yang lengkap, formal dan profesional (gaya minit rasmi). Perincikan BAHASA sahaja; JANGAN menambah fakta, angka, tarikh, nama, lokasi atau keputusan baharu yang tiada dalam nota.
+PERATUS: Sertakan jadual atau angka peratus (rancang/sebenar/lewat) HANYA jika angka itu ADA dalam nota. JANGAN reka angka.
+JANGAN hasilkan kepala mesyuarat (tajuk projek, kontraktor, tarikh, tempat), senarai kehadiran, atau blok tandatangan — semua itu ditambah oleh sistem daripada borang. Fokus pada 'agenda' dan 'seksyen' sahaja."""
 
 _DIARY_BASE = """Anda menyusun Laporan Harian Tapak Bina UTM daripada nota mentah penyelia. JANGAN salin nota bulat-bulat; HURAIKAN setiap aktiviti menjadi ayat kerja yang lengkap, formal dan deskriptif dalam gaya laporan tapak rasmi. Hasilkan SATU objek JSON SAHAJA (tiada teks atau pagar kod lain) dengan kunci berikut:
 - tajuk, tarikh, hari: string

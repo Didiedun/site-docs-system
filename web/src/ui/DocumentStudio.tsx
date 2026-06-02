@@ -68,10 +68,32 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
   const [editing, setEditing] = useState(false);
   const [showDoc, setShowDoc] = useState(false);
 
+  // minit — header, attendance and signatures are user-entered; AI writes only the body
+  const [mmTitle, setMmTitle] = useState('MINIT MESYUARAT TAPAK');
+  const [mmTajuk, setMmTajuk] = useState(PROJEK_DEFAULT);
+  const [mmNamaKon, setMmNamaKon] = useState('UER VENTURES SDN BHD');
+  const [mmNoSeb, setMmNoSeb] = useState('TN/2025-16/D-1/SP/BPA');
+  const [mmTMula, setMmTMula] = useState('22 MEI 2025');
+  const [mmTTamat, setMmTTamat] = useState('20 MEI 2026');
+  const [mmTarikhISO, setMmTarikhISO] = useState('');
+  const [mmMasa, setMmMasa] = useState('');
+  const [mmTempat, setMmTempat] = useState('Bilik Mesyuarat, BPA');
+  const [mmBil, setMmBil] = useState('');
+  const [chair, setChair] = useState<{ nama: string; jawatan: string }[]>([{ nama: '', jawatan: 'Pengerusi Mesyuarat' }]);
+  const [utmA, setUtmA] = useState<{ nama: string; jawatan: string; seksyen: string }[]>([{ nama: '', jawatan: '', seksyen: 'Seksyen Pembangunan' }]);
+  const [konA, setKonA] = useState<{ nama: string; jawatan: string }[]>([{ nama: '', jawatan: '' }]);
+  const [sigs, setSigs] = useState<{ peranan: string; nama: string; jawatan: string }[]>([
+    { peranan: 'Disediakan oleh,', nama: '', jawatan: '' },
+    { peranan: 'Disemak oleh,', nama: '', jawatan: '' },
+    { peranan: 'Disahkan oleh,', nama: '', jawatan: '' },
+    { peranan: 'Diluluskan oleh,', nama: '', jawatan: '' },
+  ]);
+  const [minitHtml, setMinitHtml] = useState('');
+
   const { tarikh, hari } = fromISO(tarikhISO);
   const selectedType = MEMO_TYPES.find((t) => t.id === memoType);
   const needsProgramme = (kind === 'memo' && selectedType?.needsProgramme) || kind === 'diary';
-  const hasDoc = !!(diaryHtml || memoHtml || output);
+  const hasDoc = !!(diaryHtml || memoHtml || minitHtml || output);
 
   async function onMpp(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -96,8 +118,13 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
 
   const lbPayload = () => ({ entries: entries.map((e) => ({ catatan: e.catatan, photos: e.photos })), disiplin: lbDisiplin, tajukLajur: lbTajukLajur });
 
+  function setChairField(i: number, key: 'nama' | 'jawatan', v: string) { setChair((pr) => pr.map((r, idx) => (idx === i ? { ...r, [key]: v } : r))); }
+  function setUtmField(i: number, key: 'nama' | 'jawatan' | 'seksyen', v: string) { setUtmA((pr) => pr.map((r, idx) => (idx === i ? { ...r, [key]: v } : r))); }
+  function setKonField(i: number, key: 'nama' | 'jawatan', v: string) { setKonA((pr) => pr.map((r, idx) => (idx === i ? { ...r, [key]: v } : r))); }
+  function setSigField(i: number, key: 'nama' | 'jawatan', v: string) { setSigs((pr) => pr.map((r, idx) => (idx === i ? { ...r, [key]: v } : r))); }
+
   async function onGenerate() {
-    setBusy(true); setError(''); setOutput(''); setDiaryHtml(''); setMemoHtml(''); setEditing(false);
+    setBusy(true); setError(''); setOutput(''); setDiaryHtml(''); setMemoHtml(''); setMinitHtml(''); setEditing(false);
     try {
       const notes = { notes: story };
       if (kind === 'memo') {
@@ -111,8 +138,24 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
         });
         setMemoHtml(html);
       } else if (kind === 'minit') {
-        const doc = await generateMinit(ports, { projectId, points: notes });
-        setOutput(doc.body);
+        const pengerusi = chair.filter((c) => c.nama.trim()).map((c) => `- ${c.nama}${c.jawatan ? ` (${c.jawatan})` : ''}`);
+        const utmGroups: { tajuk: string; ahli: string[] }[] = [];
+        utmA.filter((a) => a.nama.trim()).forEach((a) => {
+          const sec = a.seksyen.trim() || 'Pihak UTM';
+          let g = utmGroups.find((x) => x.tajuk === sec);
+          if (!g) { g = { tajuk: sec, ahli: [] }; utmGroups.push(g); }
+          g.ahli.push(`${g.ahli.length + 1}. ${a.nama}${a.jawatan ? ` (${a.jawatan})` : ''}`);
+        });
+        const kontraktor = konA.filter((k) => k.nama.trim()).map((k, i) => `${i + 1}. ${k.nama}${k.jawatan ? ` (${k.jawatan})` : ''}`);
+        const tandatangan = sigs.filter((sg) => sg.nama.trim() || sg.jawatan.trim()).map((sg) => ({ peranan: sg.peranan, nama: sg.nama, jawatan: sg.jawatan }));
+        const dot = mmTarikhISO ? mmTarikhISO.split('-').reverse().join('.') : '';
+        const { html } = await generateMinit(ports, {
+          projectId, notes,
+          header: { title: mmTitle, tajuk: mmTajuk, namaKontraktor: mmNamaKon, noSebutharga: mmNoSeb, tarikhMula: mmTMula, tarikhTamat: mmTTamat, tarikh: dot, masa: mmMasa, tempat: mmTempat, bil: mmBil },
+          kehadiran: { pengerusi, utmGroups, kontraktor },
+          tandatangan,
+        });
+        setMinitHtml(html);
       } else {
         const { html } = await generateSiteDiary(ports, { projectId, notes, header: { tajuk: tajukKerja, bil, tarikh, hari }, lb: lbPayload(), snapshot: snapshot ?? undefined });
         setDiaryHtml(html);
@@ -123,7 +166,7 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
   }
 
   function toggleEdit() {
-    const id = diaryHtml ? 'diaryFrame' : memoHtml ? 'memoFrame' : '';
+    const id = diaryHtml ? 'diaryFrame' : memoHtml ? 'memoFrame' : minitHtml ? 'minitFrame' : '';
     const f = id ? (document.getElementById(id) as HTMLIFrameElement | null) : null;
     const doc = f?.contentDocument;
     if (!doc) return;
@@ -213,6 +256,68 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
         </>
       )}
 
+      {/* ---------- MINIT header + kehadiran ---------- */}
+      {kind === 'minit' && (
+        <>
+          <Sec>Maklumat Mesyuarat (anda isi)</Sec>
+          <div className="field"><label>Tajuk minit</label><input value={mmTitle} onChange={(e) => setMmTitle(e.target.value)} /></div>
+          <div className="field"><label>Tajuk Kerja (projek)</label><textarea style={{ minHeight: 80 }} value={mmTajuk} onChange={(e) => setMmTajuk(e.target.value)} /></div>
+          <div className="grid2">
+            <div className="field"><label>Nama Kontraktor</label><input value={mmNamaKon} onChange={(e) => setMmNamaKon(e.target.value)} /></div>
+            <div className="field"><label>No. Sebutharga</label><input value={mmNoSeb} onChange={(e) => setMmNoSeb(e.target.value)} /></div>
+          </div>
+          <div className="grid2">
+            <div className="field"><label>Tarikh Mula Kerja</label><input value={mmTMula} onChange={(e) => setMmTMula(e.target.value)} /></div>
+            <div className="field"><label>Tarikh Tamat Kerja</label><input value={mmTTamat} onChange={(e) => setMmTTamat(e.target.value)} /></div>
+          </div>
+          <div className="grid2">
+            <div className="field"><label>Tarikh Mesyuarat</label><input type="date" value={mmTarikhISO} onChange={(e) => setMmTarikhISO(e.target.value)} /></div>
+            <div className="field"><label>Masa</label><input value={mmMasa} onChange={(e) => setMmMasa(e.target.value)} /></div>
+          </div>
+          <div className="grid2">
+            <div className="field"><label>Tempat</label><input value={mmTempat} onChange={(e) => setMmTempat(e.target.value)} /></div>
+            <div className="field"><label>Bil. Mesyuarat</label><input value={mmBil} onChange={(e) => setMmBil(e.target.value)} /></div>
+          </div>
+
+          <Sec>Kehadiran — Pengerusi Mesyuarat</Sec>
+          {chair.map((c, i) => (
+            <div key={i} className="field" style={{ border: '1px solid #e6e0d8', borderRadius: 9, padding: 10 }}>
+              <div className="grid2">
+                <div className="field"><label>Nama</label><input value={c.nama} onChange={(e) => setChairField(i, 'nama', e.target.value)} /></div>
+                <div className="field"><label>Jawatan</label><input value={c.jawatan} onChange={(e) => setChairField(i, 'jawatan', e.target.value)} /></div>
+              </div>
+              {chair.length > 1 && <button className="btn" style={{ padding: '4px 10px' }} onClick={() => setChair((pr) => pr.filter((_, idx) => idx !== i))}>Buang</button>}
+            </div>
+          ))}
+          <div className="btn-row"><button className="btn" onClick={() => setChair((pr) => [...pr, { nama: '', jawatan: 'Pengerusi Mesyuarat' }])}>+ Tambah pengerusi</button></div>
+
+          <Sec>Kehadiran — Pegawai UTM (nama · jawatan · seksyen)</Sec>
+          {utmA.map((a, i) => (
+            <div key={i} className="field" style={{ border: '1px solid #e6e0d8', borderRadius: 9, padding: 10 }}>
+              <div className="grid2">
+                <div className="field"><label>Nama</label><input value={a.nama} onChange={(e) => setUtmField(i, 'nama', e.target.value)} /></div>
+                <div className="field"><label>Jawatan</label><input value={a.jawatan} onChange={(e) => setUtmField(i, 'jawatan', e.target.value)} /></div>
+              </div>
+              <div className="field"><label>Seksyen / Bahagian</label><input value={a.seksyen} onChange={(e) => setUtmField(i, 'seksyen', e.target.value)} /></div>
+              {utmA.length > 1 && <button className="btn" style={{ padding: '4px 10px' }} onClick={() => setUtmA((pr) => pr.filter((_, idx) => idx !== i))}>Buang</button>}
+            </div>
+          ))}
+          <div className="btn-row"><button className="btn" onClick={() => setUtmA((pr) => [...pr, { nama: '', jawatan: '', seksyen: 'Seksyen Pembangunan' }])}>+ Tambah pegawai</button></div>
+
+          <Sec>Kehadiran — Kontraktor</Sec>
+          {konA.map((k, i) => (
+            <div key={i} className="field" style={{ border: '1px solid #e6e0d8', borderRadius: 9, padding: 10 }}>
+              <div className="grid2">
+                <div className="field"><label>Nama</label><input value={k.nama} onChange={(e) => setKonField(i, 'nama', e.target.value)} /></div>
+                <div className="field"><label>Jawatan</label><input value={k.jawatan} onChange={(e) => setKonField(i, 'jawatan', e.target.value)} /></div>
+              </div>
+              {konA.length > 1 && <button className="btn" style={{ padding: '4px 10px' }} onClick={() => setKonA((pr) => pr.filter((_, idx) => idx !== i))}>Buang</button>}
+            </div>
+          ))}
+          <div className="btn-row"><button className="btn" onClick={() => setKonA((pr) => [...pr, { nama: '', jawatan: '' }])}>+ Tambah wakil kontraktor</button></div>
+        </>
+      )}
+
       {needsProgramme && (
         <div className="field"><label>Programme (.mpp) — opsyenal, untuk status %</label>
           <input type="file" accept=".mpp" onChange={onMpp} />
@@ -245,6 +350,22 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
         </>
       )}
 
+      {/* ---------- MINIT signatures ---------- */}
+      {kind === 'minit' && (
+        <>
+          <Sec>Tandatangan — nama &amp; jawatan</Sec>
+          {sigs.map((sg, i) => (
+            <div key={i} className="field" style={{ border: '1px solid #e6e0d8', borderRadius: 9, padding: 10 }}>
+              <label>{sg.peranan}</label>
+              <div className="grid2">
+                <div className="field"><label>Nama</label><input value={sg.nama} onChange={(e) => setSigField(i, 'nama', e.target.value)} /></div>
+                <div className="field"><label>Jawatan</label><input value={sg.jawatan} onChange={(e) => setSigField(i, 'jawatan', e.target.value)} /></div>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+
       {/* ---------- MEMO signature ---------- */}
       {kind === 'memo' && (
         <>
@@ -260,7 +381,7 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
       )}
 
       <div className="btn-row">
-        <button className="btn btn-primary" onClick={onGenerate} disabled={busy || !story}>{busy ? 'Menjana… (Anggaran ~30s)' : 'Jana Dokumen'}</button>
+        <button className="btn btn-primary" onClick={onGenerate} disabled={busy || !story}>{busy ? 'Menjana… (backend mungkin sedang bangun ~30s)' : 'Jana Dokumen'}</button>
         {hasDoc && !showDoc && <button className="btn" onClick={() => setShowDoc(true)}>Buka dokumen</button>}
       </div>
 
@@ -275,16 +396,19 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
               <button style={sX} onClick={() => setShowDoc(false)} aria-label="Tutup">×</button>
             </div>
             <div style={sActions}>
-              {(diaryHtml || memoHtml) && <button className="btn" onClick={toggleEdit}>{editing ? 'Selesai Edit' : 'Edit'}</button>}
+              {(diaryHtml || memoHtml || minitHtml) && <button className="btn" onClick={toggleEdit}>{editing ? 'Selesai Edit' : 'Edit'}</button>}
               {diaryHtml && <button className="btn btn-primary" onClick={() => printFrame('diaryFrame')}>Cetak / Simpan PDF</button>}
               {diaryHtml && <button className="btn" onClick={() => saveAsWord('diaryFrame', 'site-diary.doc')}>Simpan ke Word</button>}
               {memoHtml && <button className="btn btn-primary" onClick={() => printFrame('memoFrame')}>Cetak / Simpan PDF</button>}
               {memoHtml && <button className="btn" onClick={() => saveAsWord('memoFrame', 'memo.doc')}>Simpan ke Word</button>}
+              {minitHtml && <button className="btn btn-primary" onClick={() => printFrame('minitFrame')}>Cetak / Simpan PDF</button>}
+              {minitHtml && <button className="btn" onClick={() => saveAsWord('minitFrame', 'minit-mesyuarat.doc')}>Simpan ke Word</button>}
               {output && <button className="btn" onClick={() => navigator.clipboard?.writeText(output)}>Salin Teks</button>}
             </div>
             <div style={sBody}>
               {diaryHtml && <iframe id="diaryFrame" title="diary" srcDoc={diaryHtml} style={{ width: '100%', height: 1400, border: 0, background: '#fff' }} />}
               {memoHtml && <iframe id="memoFrame" title="memo" srcDoc={memoHtml} style={{ width: '100%', height: 1400, border: 0, background: '#fff' }} />}
+              {minitHtml && <iframe id="minitFrame" title="minit" srcDoc={minitHtml} style={{ width: '100%', height: 1400, border: 0, background: '#fff' }} />}
               {output && <div className="output" style={{ margin: 14 }}>{output}</div>}
             </div>
           </div>

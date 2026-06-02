@@ -1,5 +1,5 @@
 import { GeneratedDocument, ProgrammeSnapshot } from '../domain/entities';
-import { DiaryRenderer, DocumentRepository, LlmGateway, MemoRenderer, ProgrammeParser } from '../domain/ports';
+import { DiaryRenderer, DocumentRepository, LlmGateway, MemoRenderer, MinitRenderer, ProgrammeParser } from '../domain/ports';
 
 export interface Ports {
   llm: LlmGateway;
@@ -7,6 +7,7 @@ export interface Ports {
   documents: DocumentRepository;
   diary: DiaryRenderer;
   memo: MemoRenderer;
+  minit: MinitRenderer;
 }
 
 // Persistence is optional: if saving to Supabase fails, still return the
@@ -50,10 +51,28 @@ export async function generateMemo(
 
 export async function generateMinit(
   ports: Ports,
-  args: { projectId: string; points: Record<string, unknown> },
-): Promise<GeneratedDocument> {
-  const body = await ports.llm.generateBody('minit', args.points);
-  return trySave(ports.documents, { projectId: args.projectId, kind: 'minit', body });
+  args: {
+    projectId: string;
+    notes: Record<string, unknown>;
+    header?: Record<string, unknown>;
+    kehadiran?: { pengerusi?: string[]; utmGroups?: { tajuk: string; ahli: string[] }[]; kontraktor?: string[] };
+    tandatangan?: { peranan: string; nama: string; jawatan: string; tarikh?: string }[];
+  },
+): Promise<{ doc: GeneratedDocument; html: string }> {
+  const bodyJson = await ports.llm.generateBody('minit', args.notes);
+  const data = parseModelJson(bodyJson);
+  const minitData = {
+    ...(args.header || {}),
+    pengerusi: args.kehadiran?.pengerusi,
+    utmGroups: args.kehadiran?.utmGroups,
+    kontraktor: args.kehadiran?.kontraktor,
+    agenda: data.agenda,
+    seksyen: data.seksyen,
+    tandatangan: args.tandatangan,
+  };
+  const html = ports.minit.render(minitData);
+  const doc = await trySave(ports.documents, { projectId: args.projectId, kind: 'minit', body: bodyJson });
+  return { doc, html };
 }
 
 export async function generateSiteDiary(

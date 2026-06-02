@@ -23,8 +23,7 @@ export interface MinitData {
   tempat?: string;
   bil?: string;
   pengerusi?: string[];
-  pembangunan?: string[];
-  kontrak?: string[];
+  utmGroups?: { tajuk: string; ahli: string[] }[];
   kontraktor?: string[];
   agenda?: string[];
   seksyen: MinitSection[];
@@ -162,7 +161,7 @@ export function renderMinit(d: MinitData): string {
     <div class="kehadlbl">Kehadiran :</div>
     <table class="kehad">
       <tr>
-        <td>${att('Pengerusi Mesyuarat :', d.pengerusi)}${att('Seksyen Pembangunan', d.pembangunan)}${att('Seksyen Kontrak & Perolehan', d.kontrak)}</td>
+        <td>${att('Pengerusi Mesyuarat :', d.pengerusi)}${(d.utmGroups || []).map((g) => att(g.tajuk, g.ahli)).join('')}</td>
         <td>${att('Kontraktor — ' + (d.namaKontraktor || ''), d.kontraktor)}</td>
       </tr>
     </table>
