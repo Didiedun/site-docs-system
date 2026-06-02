@@ -28,9 +28,9 @@ export function renderDiary(d: Dict): string {
   return `<!doctype html><html lang="ms"><head><meta charset="utf-8"><style>
   :root{--ink:#1f1f1f;--fs:8.7px}
   *{box-sizing:border-box} body{font-family:Arial,Helvetica,sans-serif;color:var(--ink);margin:0;font-size:var(--fs);line-height:1.35}
-  .page{width:210mm;margin:0 auto;padding:7mm;background:#fff}
-  .frame{border:1.2px solid var(--ink);background:var(--ink)}
-  .stack{display:grid;gap:1px;background:var(--ink)}
+  .page{width:210mm;margin:0 auto;padding:7mm;background:#fff;min-height:297mm;display:flex;flex-direction:column}
+  .frame{border:1.2px solid var(--ink);background:var(--ink);flex:1;display:flex;flex-direction:column;min-height:0}
+  .stack{display:flex;flex-direction:column;gap:1px;background:var(--ink);flex:1;min-height:0}
   .cols{display:grid;gap:1px;background:var(--ink)}
   .c{background:#fff;padding:4px 6px}
   .lbl{font-weight:700;text-align:center;font-size:var(--fs)}
@@ -46,9 +46,9 @@ export function renderDiary(d: Dict): string {
   .bx{display:inline-block;min-width:28px;height:12px;border:1px solid var(--ink);vertical-align:middle;text-align:center;line-height:12px;padding:0 3px}
   .frow{display:flex;align-items:center;padding:2px 0}
   .trow{display:flex;align-items:center;gap:4px;padding:2px 0} .trow .nm{flex:1;border-bottom:1px dotted #999}
-  table.pl{border-collapse:collapse;width:100%;background:#fff} table.pl td{border:1px solid var(--ink);padding:3px 4px;vertical-align:top;font-size:var(--fs)}
+  table.pl{border-collapse:collapse;width:100%;height:100%;background:#fff} table.pl td{border:1px solid var(--ink);padding:3px 4px;vertical-align:top;font-size:var(--fs)}
   table.pl .ct{text-align:center;width:30px} table.pl thead td{background:#eee;font-weight:700;text-align:center}
-  .plcell{background:#fff;padding:0}
+  .plcell{background:#fff;padding:0;display:flex;flex-direction:column} .plgrow{flex:1;display:flex}
   .wl{margin:0;padding-left:13px;line-height:1.4}
   .jrow{display:flex;align-items:center;gap:4px;padding:2px 0} .jrow .nm{width:58px}
   .jrow .g{flex:1;display:flex;align-items:center;gap:4px} .jrow .ln{flex:1;border-bottom:1px dotted #999;height:11px}
@@ -57,7 +57,8 @@ export function renderDiary(d: Dict): string {
   table.st{border-collapse:collapse;width:100%} table.st td{border:1px solid var(--ink);padding:2px 4px}
   .sig{height:42px} .ttd{text-align:right;padding:0 6px 3px}
   .foot{font-size:7.5px;font-style:italic;padding:3px 2px}
-  @media print{@page{size:A4;margin:5mm}.page{width:auto;margin:0;padding:5mm}}
+  .lbwrap{padding:7mm}
+  @media print{@page{size:A4;margin:5mm}.page{width:auto;margin:0;padding:5mm;min-height:277mm}.lbwrap{padding:0}}
   ${LB_CSS}
   </style></head><body><div class="page">
   <div class="head"><img src="${logo}" alt="UTM"><div class="dept">Jabatan Timbalan Naib<br>Canselor (Pembangunan)</div><div class="ref">B-BPA/SP/LHTB<br>Pin. /2024</div></div>
@@ -69,39 +70,39 @@ export function renderDiary(d: Dict): string {
       <div class="dh"><div class="r"><b>TARIKH</b> : ${esc(d.tarikh)}</div><div class="r"><b>HARI</b> : ${esc(d.hari)}</div></div>
       <div class="bil">BIL: ${esc(d.bil)}</div>
     </div>
-    <div class="cols" style="grid-template-columns:30% 30% 40%">
+    <div class="cols" style="grid-template-columns:3fr 3fr 4fr">
       <div class="c"><div class="lbl">SKOP KERJA</div>${SKOP.map((s) => `<div class="frow">${ck(skop[s])}${s}</div>`).join('')}</div>
       <div class="c"><div class="lbl">CUACA</div><div style="text-align:center;font-style:italic;font-size:7px">batalkan yang tidak berkenaan</div>
         <div class="frow">${ck(false)}pagi : ${cuaca(cu.pagi)}</div><div class="frow">${ck(false)}petang : ${cuaca(cu.petang)}</div></div>
       <div class="c"><div class="lbl">TENAGA KERJA <span style="float:right;font-weight:400;font-size:7px">bil</span></div>
         ${tenaga.map(([n, b]: [string, string]) => `<div class="trow"><span class="nm">${esc(n)}</span>${bx(b)}</div>`).join('')}</div>
     </div>
-    <div class="cols" style="grid-template-columns:60% 40%">
+    <div class="cols" style="grid-template-columns:3fr 2fr;flex:1">
       <div class="plcell"><div class="hdr">PERLAKSANAAN KERJA KONTRAKTOR DI TAPAK</div>
-        <table class="pl"><thead><tr><td>masa</td><td>butiran kerja kontraktor</td><td>kuantiti</td><td>*kualiti/spek.</td></tr></thead><tbody>${perlak}</tbody></table></div>
+        <div class="plgrow"><table class="pl"><thead><tr><td>masa</td><td>butiran kerja kontraktor</td><td>kuantiti</td><td>*kualiti/spek.</td></tr></thead><tbody>${perlak}</tbody></table></div></div>
       <div class="stack">
         <div class="c"><div class="lbl">JENTERA / MESIN</div>
           ${JENTERA.map(([a, b]: [string, string]) => `<div class="jrow"><span class="nm">${a}</span>${bx(jv(a))}<span class="g">${b ? `${b} ${bx(jv(b))}` : `<span class="ln"></span>${bx('')}`}</span></div>`).join('')}</div>
         <div class="c"><div class="lbl">BAHAN BINAAN</div><table class="bh"><tr><td>bahan</td><td style="width:64px">bil dibekal</td></tr>${bahan.map(([a, b]: [string, string]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join('')}</table></div>
-        <div class="c"><div class="lbl">*PENGURUSAN TAPAK</div>
+        <div class="c" style="flex:1"><div class="lbl">*PENGURUSAN TAPAK</div>
           <div class="frow">keselamatan ${ck(peng['keselamatan'])} &nbsp; kebersihan ${ck(peng['kebersihan'])}</div>
           <div class="frow">papan tanda ${ck(peng['papan tanda'])} &nbsp; pakaian kerja ${ck(peng['pakaian kerja'])}</div>
           <div class="frow">waktu kerja ${ck(peng['waktu kerja'])}</div></div>
       </div>
     </div>
-    <div class="cols" style="grid-template-columns:30% 30% 40%">
+    <div class="cols" style="grid-template-columns:3fr 3fr 4fr">
       <div class="c" style="padding:0"><div class="lbl" style="padding:3px 0">CATATAN PENYELIA</div><div class="box">${ol(d.catatan)}</div></div>
       <div class="c" style="padding:0"><div class="lbl" style="padding:3px 0">ARAHAN KEPADA KONTRAKTOR</div><div class="box">${ol(d.arahan)}</div></div>
       <div class="c" style="padding:0"><div class="lbl" style="padding:3px 0">UJIAN DI TAPAK <span style="font-weight:400;font-size:7px">(sekiranya ada/perlu)</span></div>
         <div class="cols" style="grid-template-columns:1fr 70px"><div class="c">keterangan ujian<br>${esc((d.ujian || {}).keterangan)}</div><div class="c">keputusan<br>${esc((d.ujian || {}).keputusan)}</div></div></div>
     </div>
-    <div class="cols" style="grid-template-columns:60% 40%">
+    <div class="cols" style="grid-template-columns:3fr 2fr">
       <div class="c" style="padding:0"><div class="lbl" style="padding:3px 0">PENYELARASAN BERSAMA PELANGGAN <span style="font-weight:400;font-size:7px">(sekiranya ada/perlu)</span></div><div class="box">${esc(d.penyelarasan)}</div></div>
       <div class="c" style="padding:0"><div class="lbl" style="padding:3px 0">**STATUS KERJA</div>
         <table class="st"><tr><td rowspan="2">peratus<br>kemajuan</td><td>rancang :</td><td>${esc(st.rancang)} %</td></tr><tr><td>sebenar :</td><td>${esc(st.sebenar)} %</td></tr>
         <tr><td rowspan="2">tempoh<br>bekerja</td><td>rancang :</td><td>${esc(st.tempohRancang)} hari</td></tr><tr><td>sebenar :</td><td>${esc(st.tempohSebenar)} hari</td></tr></table></div>
     </div>
-    <div class="cols" style="grid-template-columns:60% 40%">
+    <div class="cols" style="grid-template-columns:3fr 2fr">
       <div class="cols" style="grid-template-columns:1fr 1fr">
         <div class="c" style="padding:0"><div class="lbl" style="padding:3px 0">PENYELIA</div><div class="sig"></div></div>
         <div class="c" style="padding:0"><div class="lbl" style="padding:3px 0">KONTRAKTOR</div><div class="sig"></div></div>
@@ -111,6 +112,7 @@ export function renderDiary(d: Dict): string {
     </div>
   </div></div>
   <div class="foot">* tandakan [ &#10003; ] ~ patuh ; [ X ] ~ tidak patuh ; ** pengisian secara mingguan oleh Pegawai Yang Bertanggungjawab</div>
-  ${lbHtml}
-  </div></body></html>`;
+  </div>
+  ${lbHtml ? `<div class="lbwrap">${lbHtml}</div>` : ''}
+  </body></html>`;
 }
