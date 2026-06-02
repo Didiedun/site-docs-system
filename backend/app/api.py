@@ -4,7 +4,7 @@ import tempfile
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from .generation.gemini_client import generate
+from .generation.llm import generate
 from .generation.prompts import build_prompt
 from .models import GenerateRequest
 from .programme.mpp_reader import parse_programme

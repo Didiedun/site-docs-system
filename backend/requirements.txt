@@ -5,3 +5,4 @@ mpxj
 JPype1
 google-genai
 pydantic
+requests
