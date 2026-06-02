@@ -27,7 +27,7 @@ export function renderDiary(d: Dict): string {
 
   return `<!doctype html><html lang="ms"><head><meta charset="utf-8"><style>
   :root{--ink:#1f1f1f;--fs:8.7px}
-  *{box-sizing:border-box} body{font-family:Arial,Helvetica,sans-serif;color:var(--ink);margin:0;font-size:var(--fs);line-height:1.35}
+  *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact} body{font-family:Arial,Helvetica,sans-serif;color:var(--ink);margin:0;font-size:var(--fs);line-height:1.35}
   .page{width:210mm;margin:0 auto;padding:7mm;background:#fff;min-height:297mm;display:flex;flex-direction:column}
   .frame{border:1.2px solid var(--ink);background:var(--ink);flex:1;display:flex;flex-direction:column;min-height:0}
   .stack{display:flex;flex-direction:column;gap:1px;background:var(--ink);flex:1;min-height:0}

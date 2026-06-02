@@ -39,7 +39,7 @@ export function renderMemo(d: Dict): string {
   const photoPage = renderLaporanBergambar(d.photoEntries, { projek: d.projek, disiplin: d.lbDisiplin, tajukLajur: d.lbTajukLajur });
 
   return `<!doctype html><html lang="ms"><head><meta charset="utf-8"><style>
-  *{box-sizing:border-box} body{font-family:Arial,Helvetica,sans-serif;color:#1b1b1b;margin:0;font-size:11px;line-height:1.5}
+  *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact} body{font-family:Arial,Helvetica,sans-serif;color:#1b1b1b;margin:0;font-size:11px;line-height:1.5}
   .page{width:210mm;margin:0 auto;padding:16mm 18mm;background:#fff}
   .top{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #1b1b1b;padding-bottom:8px}
   .top .lhs{display:flex;align-items:center;gap:10px} .top img{height:46px} .dept{font-size:10px;line-height:1.25}
