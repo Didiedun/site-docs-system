@@ -1,4 +1,4 @@
-import { useMemo, useState, ChangeEvent } from 'react';
+import { useMemo, useState, ChangeEvent, CSSProperties } from 'react';
 import { MEMO_TYPES } from '../domain/memoTypes';
 import { ProgrammeSnapshot } from '../domain/entities';
 import { buildPorts } from '../composition';
@@ -21,6 +21,12 @@ const UNIT_DEFAULT = 'Seksyen Pembangunan\nBahagian Pengurusan Aset\nJabatan Tim
 const Sec = ({ children }: { children: any }) => (
   <div style={{ fontWeight: 700, fontSize: 13, margin: '18px 0 8px', paddingTop: 12, borderTop: '1px solid #e6e0d8' }}>{children}</div>
 );
+const sBackdrop: CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 10, zIndex: 1000, overflow: 'auto' };
+const sModal: CSSProperties = { background: '#fff', borderRadius: 12, width: '100%', maxWidth: 920, margin: 'auto', boxShadow: '0 12px 48px rgba(0,0,0,.35)', display: 'flex', flexDirection: 'column', maxHeight: '96vh' };
+const sHead: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderBottom: '1px solid #e6e0d8' };
+const sActions: CSSProperties = { display: 'flex', gap: 8, flexWrap: 'wrap', padding: '10px 14px', borderBottom: '1px solid #e6e0d8' };
+const sBody: CSSProperties = { overflow: 'auto', flex: 1, background: '#f2efe9' };
+const sX: CSSProperties = { border: 0, background: 'transparent', fontSize: 24, lineHeight: 1, cursor: 'pointer', color: '#6b6560', padding: '0 6px' };
 
 export function DocumentStudio({ projectId }: { projectId: string }) {
   const ports = useMemo(() => buildPorts(), []);
@@ -60,10 +66,12 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
 
   const [memoHtml, setMemoHtml] = useState('');
   const [editing, setEditing] = useState(false);
+  const [showDoc, setShowDoc] = useState(false);
 
   const { tarikh, hari } = fromISO(tarikhISO);
   const selectedType = MEMO_TYPES.find((t) => t.id === memoType);
   const needsProgramme = (kind === 'memo' && selectedType?.needsProgramme) || kind === 'diary';
+  const hasDoc = !!(diaryHtml || memoHtml || output);
 
   async function onMpp(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -109,6 +117,7 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
         const { html } = await generateSiteDiary(ports, { projectId, notes, header: { tajuk: tajukKerja, bil, tarikh, hari }, lb: lbPayload(), snapshot: snapshot ?? undefined });
         setDiaryHtml(html);
       }
+      setShowDoc(true);
     } catch (err) { setError(err instanceof Error ? err.message : JSON.stringify(err)); }
     finally { setBusy(false); }
   }
@@ -233,16 +242,33 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
 
       <div className="btn-row">
         <button className="btn btn-primary" onClick={onGenerate} disabled={busy || !story}>{busy ? 'Menjana… (backend mungkin sedang bangun ~30s)' : 'Jana Dokumen'}</button>
-        {(diaryHtml || memoHtml) && <button className="btn" onClick={toggleEdit}>{editing ? 'Selesai Edit' : 'Edit'}</button>}
-        {diaryHtml && <button className="btn" onClick={() => printFrame('diaryFrame')}>Cetak / Simpan PDF</button>}
-        {memoHtml && <button className="btn" onClick={() => printFrame('memoFrame')}>Cetak / Simpan PDF</button>}
-        {output && <button className="btn" onClick={() => navigator.clipboard?.writeText(output)}>Salin Teks</button>}
+        {hasDoc && !showDoc && <button className="btn" onClick={() => setShowDoc(true)}>Buka dokumen</button>}
       </div>
 
       {error && <div className="err">{error}</div>}
-      {output && <div className="output">{output}</div>}
-      {diaryHtml && <div className="frame-wrap"><iframe id="diaryFrame" title="diary" srcDoc={diaryHtml} style={{ width: '100%', height: 1000, border: 0 }} /></div>}
-      {memoHtml && <div className="frame-wrap"><iframe id="memoFrame" title="memo" srcDoc={memoHtml} style={{ width: '100%', height: 1100, border: 0 }} /></div>}
+
+      {/* ---------- Generated document: popup ---------- */}
+      {showDoc && hasDoc && (
+        <div style={sBackdrop} onClick={() => setShowDoc(false)}>
+          <div style={sModal} onClick={(e) => e.stopPropagation()}>
+            <div style={sHead}>
+              <div style={{ fontWeight: 700, fontFamily: 'Sora, sans-serif' }}>Dokumen Dijana</div>
+              <button style={sX} onClick={() => setShowDoc(false)} aria-label="Tutup">×</button>
+            </div>
+            <div style={sActions}>
+              {(diaryHtml || memoHtml) && <button className="btn" onClick={toggleEdit}>{editing ? 'Selesai Edit' : 'Edit'}</button>}
+              {diaryHtml && <button className="btn btn-primary" onClick={() => printFrame('diaryFrame')}>Cetak / Simpan PDF</button>}
+              {memoHtml && <button className="btn btn-primary" onClick={() => printFrame('memoFrame')}>Cetak / Simpan PDF</button>}
+              {output && <button className="btn" onClick={() => navigator.clipboard?.writeText(output)}>Salin Teks</button>}
+            </div>
+            <div style={sBody}>
+              {diaryHtml && <iframe id="diaryFrame" title="diary" srcDoc={diaryHtml} style={{ width: '100%', height: 1400, border: 0, background: '#fff' }} />}
+              {memoHtml && <iframe id="memoFrame" title="memo" srcDoc={memoHtml} style={{ width: '100%', height: 1400, border: 0, background: '#fff' }} />}
+              {output && <div className="output" style={{ margin: 14 }}>{output}</div>}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
