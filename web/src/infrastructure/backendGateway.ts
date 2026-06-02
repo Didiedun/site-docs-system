@@ -4,7 +4,7 @@ import { LlmGateway, ProgrammeParser } from '../domain/ports';
 
 // Free-tier backends sleep when idle; the first call can drop while it wakes.
 // Retry network failures a few times before giving up.
-async function fetchWithRetry(url: string, init: RequestInit, tries = 6, delayMs = 5000): Promise<Response> {
+async function fetchWithRetry(url: string, init: RequestInit, tries = 10, delayMs = 6000): Promise<Response> {
   let lastErr: unknown;
   for (let i = 0; i < tries; i++) {
     try {

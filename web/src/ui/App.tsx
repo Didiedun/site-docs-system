@@ -1,6 +1,18 @@
+import { useEffect } from 'react';
 import { DocumentStudio } from './DocumentStudio';
 
 export default function App() {
+  // Wake the (free-tier) backend the moment the app opens, and keep it warm
+  // while open, so it isn't asleep when the user taps Generate.
+  useEffect(() => {
+    const url = import.meta.env.VITE_BACKEND_URL as string | undefined;
+    if (!url) return;
+    const ping = () => fetch(`${url}/health`).catch(() => {});
+    ping();
+    const id = setInterval(ping, 10 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <div className="app">
       <header className="app-header">
