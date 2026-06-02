@@ -40,7 +40,10 @@ _MINIT_BASE = """Anda menyusun BAHAGIAN ISI Minit Mesyuarat Tapak/Pemantauan UTM
 Struktur lazim: 1.0 Pendahuluan (Makluman); 2.0 Laporan Kemajuan & Status Kerja (status semasa, isu pekerja/jentera, tindakan diperlukan, dan status mengikut blok sebagai item+sub); 3.0 Rumusan Mesyuarat (Makluman); 4.0 Penutup.
 GAYA: Huraikan setiap poin menjadi ayat yang lengkap, formal dan profesional (gaya minit rasmi). Perincikan BAHASA sahaja; JANGAN menambah fakta, angka, tarikh, nama, lokasi atau keputusan baharu yang tiada dalam nota.
 PERATUS: Sertakan jadual atau angka peratus (rancang/sebenar/lewat) HANYA jika angka itu ADA dalam nota. JANGAN reka angka.
-JANGAN hasilkan kepala mesyuarat (tajuk projek, kontraktor, tarikh, tempat), senarai kehadiran, atau blok tandatangan — semua itu ditambah oleh sistem daripada borang. Fokus pada 'agenda' dan 'seksyen' sahaja."""
+JANGAN hasilkan kepala mesyuarat (tajuk projek, kontraktor, tarikh, tempat), senarai kehadiran, atau blok tandatangan — semua itu ditambah oleh sistem daripada borang. Fokus pada 'agenda' dan 'seksyen' sahaja.
+PENTING (jadual): Setiap jadual MESTI menjadi blok berasingan {"type":"table","headers":[...],"rows":[[...]]} di dalam 'isi'. JANGAN letak objek jadual di dalam 'text' atau di dalam 'sub' — 'sub' mesti senarai STRING sahaja.
+PENTING (sumber): Gunakan HANYA maklumat yang ADA dalam nota pengguna. JANGAN menyalin, meniru atau mencipta data, angka, tarikh atau baris jadual daripada contoh atau dokumen lain.
+Contoh ringkas output: {"agenda":["Status kemajuan kerja"],"seksyen":[{"no":"2.0","tajuk":"Laporan Kemajuan & Status Kerja","status":"Tindakan : Kontraktor","isi":[{"type":"item","label":"i.","text":"Status kemajuan setakat tarikh berkenaan adalah seperti berikut:"},{"type":"table","headers":["Perkara","Rancang","Sebenar","Status"],"rows":[["Kemajuan kerja","71%","28%","-42%"]]},{"type":"item","label":"a.","text":"P03","sub":["Baki kerja: siling luar dan kerja M&E belum siap."]}]}]}"""
 
 _DIARY_BASE = """Anda menyusun Laporan Harian Tapak Bina UTM daripada nota mentah penyelia. JANGAN salin nota bulat-bulat; HURAIKAN setiap aktiviti menjadi ayat kerja yang lengkap, formal dan deskriptif dalam gaya laporan tapak rasmi. Hasilkan SATU objek JSON SAHAJA (tiada teks atau pagar kod lain) dengan kunci berikut:
 - tajuk, tarikh, hari: string
