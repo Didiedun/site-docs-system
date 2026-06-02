@@ -29,12 +29,12 @@ _MEMO_TYPE_GUIDE = {
 
 _MINIT_BASE = """Anda mendraf BAHAGIAN ISI minit Mesyuarat Pemantauan Khas UTM dalam BM rasmi, daripada poin mentah. Output bahagian bernombor (Pendahuluan, Laporan Kemajuan, Isu, Punca, Tarikh Siap, Rumusan, Penutup) dengan lajur Status/Tindakan di mana sesuai. JANGAN hasilkan kotak maklumat projek, senarai kehadiran, atau blok tandatangan. Jangan reka fakta."""
 
-_DIARY_BASE = """Anda menyusun Laporan Harian Tapak Bina UTM daripada nota mentah penyelia. JANGAN salin nota bulat-bulat; TULIS SEMULA setiap aktiviti sebagai ayat kerja profesional yang ringkas. Hasilkan SATU objek JSON SAHAJA (tiada teks atau pagar kod lain) dengan kunci berikut:
+_DIARY_BASE = """Anda menyusun Laporan Harian Tapak Bina UTM daripada nota mentah penyelia. JANGAN salin nota bulat-bulat; HURAIKAN setiap aktiviti menjadi ayat kerja yang lengkap, formal dan deskriptif dalam gaya laporan tapak rasmi. Hasilkan SATU objek JSON SAHAJA (tiada teks atau pagar kod lain) dengan kunci berikut:
 - tajuk, tarikh, hari: string
 - skop: objek dengan kunci Senibina, Mekanikal, Elektrik, Awam, Lanskap bernilai true atau false (disiplin kerja hari itu)
 - cuaca: objek dengan kunci pagi dan petang, nilai cerah atau mendung atau hujan
 - tenaga: objek dengan kunci senarai, iaitu senarai pasangan [peranan atau tred cth Tukang Siling (P07), bilangan]
-- perlaksanaan: senarai objek dengan kunci masa (Pagi atau Petang), butiran (senarai ayat kerja), kuantiti, kualiti
+- perlaksanaan: senarai objek dengan kunci masa (Pagi atau Petang), butiran (senarai ayat kerja yang DIHURAIKAN), kuantiti, kualiti
 - bahan: senarai pasangan [nama bahan atau penghantaran, bil dibekal]
 - pengurusan: objek dengan kunci keselamatan, kebersihan, papan tanda, pakaian kerja, waktu kerja bernilai true atau false
 - catatan: senarai catatan penyelia
@@ -42,6 +42,8 @@ _DIARY_BASE = """Anda menyusun Laporan Harian Tapak Bina UTM daripada nota menta
 - penyelarasan: string penyelarasan bersama pelanggan
 - ujian: objek dengan kunci keterangan dan keputusan
 - komen: string komen mingguan (biasanya kosong)
+GAYA BUTIRAN: Bagi SETIAP item dalam 'butiran' perlaksanaan, huraikan aktiviti menjadi satu ayat penuh yang formal dan deskriptif — nyatakan jenis kerja dan lokasi dengan jelas, dan gunakan frasa kerja yang sesuai (cth \"Kerja-kerja ... sedang dijalankan/diteruskan/dilaksanakan oleh pihak kontraktor di ...\"). Setiap butiran hendaklah satu ayat lengkap, bukan frasa pendek. Perincikan BAHASA sahaja — JANGAN tambah kuantiti, bahan, kaedah, peralatan, sebab atau lokasi yang TIADA dalam nota.
+CONTOH (huraikan bahasa, bukan fakta) — Nota: \"Kerja2 memasang Syiling di Aras 4, P02\" menjadi butiran: \"Kerja-kerja pemasangan siling sedang dijalankan oleh pihak kontraktor di Aras 4, Blok P02.\" Nota: \"Kerja2 flashing di rooftop, P03\" menjadi butiran: \"Kerja-kerja pemasangan flashing sedang dilaksanakan di kawasan rooftop (bumbung), Blok P03.\"
 Untuk perkara yang tiada dalam nota, tinggalkan kosong atau false. Jangan reka data. Jangan hasilkan status atau peratus kemajuan."""
 
 
