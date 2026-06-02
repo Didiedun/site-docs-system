@@ -8,8 +8,11 @@ const esc = (s: any) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;'
 const br = (s: any) => esc(s).replace(/\n/g, '<br>');
 
 function renderTable(t: Dict): string {
-  const heads = (t.headers || []).map((h: any) => `<th>${esc(h)}</th>`).join('');
-  const rows = (t.rows || []).map((r: any[]) => `<tr>${(r || []).map((c) => `<td>${br(c)}</td>`).join('')}</tr>`).join('');
+  const punca = Array.isArray(t.punca) && t.punca.length ? t.punca : null;
+  const heads = [...(t.headers || []), ...(punca ? ['Punca Kelewatan'] : [])].map((h: any) => `<th>${esc(h)}</th>`).join('');
+  const n = (t.rows || []).length || 1;
+  const puncaCell = punca ? `<td class="puncacell" rowspan="${n}"><ol class="puncaol">${punca.map((x: any) => `<li>${br(x)}</li>`).join('')}</ol></td>` : '';
+  const rows = (t.rows || []).map((r: any[], i: number) => `<tr>${(r || []).map((c) => `<td>${br(c)}</td>`).join('')}${punca && i === 0 ? puncaCell : ''}</tr>`).join('');
   return `${t.title ? `<div class="tt">${esc(t.title)}</div>` : ''}<table class="mt">${heads ? `<thead><tr>${heads}</tr></thead>` : ''}<tbody>${rows}</tbody></table>`;
 }
 
@@ -52,6 +55,7 @@ export function renderMemo(d: Dict): string {
   .tblwrap{margin:8px 0} .tt{font-weight:700;margin:6px 0 4px}
   table.mt{border-collapse:collapse;width:100%;font-size:10.5px} table.mt th,table.mt td{border:1px solid #1b1b1b;padding:5px 7px;vertical-align:top}
   table.mt th{background:#e9e9e9;text-align:center;font-weight:700}
+  .puncacell{vertical-align:top;text-align:left} .puncaol{margin:0;padding-left:18px} .puncaol li{margin:2px 0}
   .cl{margin:10px 0 0}
   .cogan{font-weight:700;font-style:italic;margin:14px 0 0} .amanah{margin:16px 0 0}
   .sigsp{height:46px} .signame{font-weight:700;margin:0} .sigrole{margin:0;font-size:10.5px;line-height:1.4}
