@@ -37,9 +37,10 @@ _MINIT_BASE = """Anda menyusun BAHAGIAN ISI Minit Mesyuarat Tapak/Pemantauan UTM
        {"type":"subhead","text":"2.1 ..."}  tajuk kecil
        {"type":"para","text":"..."}  perenggan biasa tanpa label
        {"type":"table","headers":["..."],"rows":[["..."]]}  jadual (cth Rancang/Sebenar/Status)
-Struktur lazim: 1.0 Pendahuluan (Makluman); 2.0 Laporan Kemajuan & Status Kerja (status semasa, isu pekerja/jentera, tindakan diperlukan, dan status mengikut blok sebagai item+sub); 3.0 Rumusan Mesyuarat (Makluman); 4.0 Penutup.
+Struktur lazim: 2.0 Laporan Kemajuan & Status Kerja (status semasa, isu pekerja/jentera, tindakan diperlukan, dan status mengikut blok sebagai item+sub); 3.0 Rumusan Mesyuarat (Makluman); 4.0 Penutup. Bahagian 1.0 Pendahuluan ditambah secara automatik oleh sistem — JANGAN hasilkan 1.0; mulakan 'seksyen' dari 2.0.
 GAYA: Huraikan setiap poin menjadi ayat yang lengkap, formal dan profesional (gaya minit rasmi). Perincikan BAHASA sahaja; JANGAN menambah fakta, angka, tarikh, nama, lokasi atau keputusan baharu yang tiada dalam nota.
-PERATUS: Sertakan jadual atau angka peratus (rancang/sebenar/lewat) HANYA jika angka itu ADA dalam nota. JANGAN reka angka.
+KELENGKAPAN: Masukkan SEMUA poin, butiran dan blok daripada nota ke dalam bahagian yang sesuai — jangan tinggalkan atau ringkaskan sehingga maklumat hilang.
+PERATUS: Jika nota mengandungi angka kemajuan terkini (rancang/sebenar/lewat atau peratus), WAJIB masukkan sebagai blok {"type":"table","headers":["Perkara","Rancang","Sebenar","Status"],"rows":[["Kemajuan kerja","<rancang>","<sebenar>","<lewat>"]]} di bawah subhead Status Kemajuan. JANGAN reka angka yang tiada dalam nota.
 JANGAN hasilkan kepala mesyuarat (tajuk projek, kontraktor, tarikh, tempat), senarai kehadiran, atau blok tandatangan — semua itu ditambah oleh sistem daripada borang. Fokus pada 'agenda' dan 'seksyen' sahaja.
 PENTING (jadual): Setiap jadual MESTI menjadi blok berasingan {"type":"table","headers":[...],"rows":[[...]]} di dalam 'isi'. JANGAN letak objek jadual di dalam 'text' atau di dalam 'sub' — 'sub' mesti senarai STRING sahaja.
 PENTING (sumber): Gunakan HANYA maklumat yang ADA dalam nota pengguna. JANGAN menyalin, meniru atau mencipta data, angka, tarikh atau baris jadual daripada contoh atau dokumen lain.

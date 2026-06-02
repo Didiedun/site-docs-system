@@ -55,19 +55,25 @@ export async function generateMinit(
     projectId: string;
     notes: Record<string, unknown>;
     header?: Record<string, unknown>;
-    kehadiran?: { pengerusi?: string[]; utmGroups?: { tajuk: string; ahli: string[] }[]; kontraktor?: string[] };
+    kehadiran?: { pengerusi?: { nama: string; jawatan?: string }[]; utmGroups?: { tajuk: string; ahli: { nama: string; jawatan?: string }[] }[]; kontraktor?: { nama: string; jawatan?: string }[] };
     tandatangan?: { peranan: string; nama: string; jawatan: string; tarikh?: string }[];
   },
 ): Promise<{ doc: GeneratedDocument; html: string }> {
   const bodyJson = await ports.llm.generateBody('minit', args.notes);
   const data = parseModelJson(bodyJson);
+  const PENDAHULUAN = {
+    no: '1.0', tajuk: 'Pendahuluan', status: 'Makluman',
+    isi: [{ type: 'item', label: 'i.', text: 'Mesyuarat dimulakan dengan bacaan surah Al-Fatihah dan Pengerusi mengalu-alukan kehadiran ahli mesyuarat.' }],
+  };
+  const aiSeksyen: any[] = Array.isArray(data.seksyen) ? data.seksyen : [];
+  const seksyen = [PENDAHULUAN, ...aiSeksyen.filter((x: any) => x && x.no !== '1.0' && !/pendahuluan/i.test(String(x.tajuk || '')))];
   const minitData = {
     ...(args.header || {}),
     pengerusi: args.kehadiran?.pengerusi,
     utmGroups: args.kehadiran?.utmGroups,
     kontraktor: args.kehadiran?.kontraktor,
     agenda: data.agenda,
-    seksyen: data.seksyen,
+    seksyen,
     tandatangan: args.tandatangan,
   };
   const html = ports.minit.render(minitData);
