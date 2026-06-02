@@ -142,6 +142,25 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
     f?.contentWindow?.print();
   }
 
+  // Export the document (including any inline edits) as a .doc that Word /
+  // Pages / Google Docs can open and edit (add/remove rows, etc.).
+  function saveAsWord(frameId: string, filename: string) {
+    const f = document.getElementById(frameId) as HTMLIFrameElement | null;
+    const doc = f?.contentDocument;
+    if (!doc) return;
+    doc.designMode = 'off';
+    if (doc.body) doc.body.style.outline = '';
+    setEditing(false);
+    const ns = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>";
+    const html = '<!doctype html>' + doc.documentElement.outerHTML.replace(/<html[^>]*>/i, ns);
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   return (
     <div className="card">
       <h2>Jana Dokumen</h2>
@@ -241,7 +260,7 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
       )}
 
       <div className="btn-row">
-        <button className="btn btn-primary" onClick={onGenerate} disabled={busy || !story}>{busy ? 'Menjana… (backend mungkin sedang bangun ~30s)' : 'Jana Dokumen'}</button>
+        <button className="btn btn-primary" onClick={onGenerate} disabled={busy || !story}>{busy ? 'Menjana… (Anggaran ~30s)' : 'Jana Dokumen'}</button>
         {hasDoc && !showDoc && <button className="btn" onClick={() => setShowDoc(true)}>Buka dokumen</button>}
       </div>
 
@@ -258,7 +277,9 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
             <div style={sActions}>
               {(diaryHtml || memoHtml) && <button className="btn" onClick={toggleEdit}>{editing ? 'Selesai Edit' : 'Edit'}</button>}
               {diaryHtml && <button className="btn btn-primary" onClick={() => printFrame('diaryFrame')}>Cetak / Simpan PDF</button>}
+              {diaryHtml && <button className="btn" onClick={() => saveAsWord('diaryFrame', 'site-diary.doc')}>Simpan ke Word</button>}
               {memoHtml && <button className="btn btn-primary" onClick={() => printFrame('memoFrame')}>Cetak / Simpan PDF</button>}
+              {memoHtml && <button className="btn" onClick={() => saveAsWord('memoFrame', 'memo.doc')}>Simpan ke Word</button>}
               {output && <button className="btn" onClick={() => navigator.clipboard?.writeText(output)}>Salin Teks</button>}
             </div>
             <div style={sBody}>
