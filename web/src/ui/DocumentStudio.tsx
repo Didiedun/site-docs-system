@@ -175,6 +175,20 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
     const doc = f?.contentDocument;
     if (doc) { doc.designMode = 'off'; if (doc.body) doc.body.style.outline = ''; }
     setEditing(false);
+
+    // Mobile browsers don't support contentWindow.print() reliably —
+    // open the HTML in a new tab so the native print/share sheet works.
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      const html = doc ? '<!doctype html>' + doc.documentElement.outerHTML : '';
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.target = '_blank'; a.rel = 'noopener';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      return;
+    }
+
     f?.contentWindow?.focus();
     f?.contentWindow?.print();
   }
