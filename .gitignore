@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+web/node_modules/
+
+# Build output (Cloudflare Pages builds this itself)
+web/dist/
+dist/
+
+# Lock files (optional — remove these lines if you want to commit them)
+web/package-lock.json
+package-lock.json
+yarn.lock
+
+# Environment secrets (never commit these)
+.env
+.env.local
+.env.*.local
+web/.env.local
+web/.env.development
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+backend/.venv/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

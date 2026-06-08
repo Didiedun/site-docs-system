@@ -4,35 +4,50 @@ export function LoginPage() {
   const { signIn } = useAuth();
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--paper)' }}>
-      <div style={{ background: '#fff', borderRadius: 20, padding: '48px 40px', boxShadow: '0 8px 40px rgba(122,12,46,.12)', maxWidth: 400, width: '90%', textAlign: 'center', border: '1px solid var(--line)' }}>
-        <div style={{ width: 72, height: 72, background: 'linear-gradient(180deg,var(--maroon),#5c0a23)', borderRadius: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 22px' }}>
-          <img src="/utm-logo.png" alt="UTM" style={{ height: 50, width: 50, objectFit: 'contain' }} />
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(160deg, #f6f3ee 0%, #ede8e0 100%)' }}>
+      {/* Card */}
+      <div style={{ background: '#fff', borderRadius: 22, padding: '0 0 32px', boxShadow: '0 12px 48px rgba(122,12,46,.13)', maxWidth: 400, width: '90%', textAlign: 'center', border: '1px solid var(--line)', overflow: 'hidden' }}>
+
+        {/* Maroon header band — logo sits here on white background */}
+        <div style={{ background: 'linear-gradient(180deg, var(--maroon) 0%, #5c0a23 100%)', padding: '32px 0 24px', marginBottom: 0 }}>
+          <div style={{ width: 76, height: 76, background: '#fff', borderRadius: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 4px 16px rgba(0,0,0,.18)' }}>
+            <img src="/utm-logo.png" alt="UTM" style={{ height: 54, width: 54, objectFit: 'contain' }} />
+          </div>
+          <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: 18, color: '#fff', margin: '0 0 4px', fontWeight: 700, letterSpacing: '-.01em' }}>
+            Sistem Dokumen Tapak
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,.75)', fontSize: 12, margin: 0 }}>
+            UTM · Jabatan TNC (Pembangunan)
+          </p>
         </div>
-        <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: 20, color: 'var(--maroon)', margin: '0 0 6px', fontWeight: 700 }}>
-          Sistem Dokumen Tapak
-        </h1>
-        <p style={{ color: 'var(--muted)', fontSize: 12.5, margin: '0 0 8px' }}>
-          UTM · Jabatan TNC (Pembangunan)
-        </p>
-        <div style={{ width: 40, height: 2, background: 'var(--gold)', margin: '0 auto 28px', borderRadius: 2 }} />
 
-        <button
-          onClick={signIn}
-          style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#fff', border: '1.5px solid #dadce0', borderRadius: 12, padding: '13px 20px', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#3c4043', width: '100%', justifyContent: 'center', boxShadow: '0 1px 6px rgba(0,0,0,.08)', fontFamily: 'inherit', transition: 'box-shadow .15s' }}
-          onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 3px 12px rgba(0,0,0,.14)')}
-          onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 1px 6px rgba(0,0,0,.08)')}
-        >
-          <GoogleIcon />
-          Log masuk dengan Google
-        </button>
+        {/* Gold divider */}
+        <div style={{ height: 3, background: 'var(--gold)' }} />
 
-        <p style={{ color: 'var(--muted)', fontSize: 11, marginTop: 20, lineHeight: 1.5 }}>
-          Hanya akaun Google yang dibenarkan.<br />
-          Sistem ini untuk kegunaan dalaman UTM sahaja.
-        </p>
+        {/* Body */}
+        <div style={{ padding: '28px 32px 0' }}>
+          <p style={{ color: 'var(--muted)', fontSize: 13, margin: '0 0 22px', lineHeight: 1.6 }}>
+            Log masuk untuk mengakses sistem penjanaan dokumen tapak bina UTM.
+          </p>
+
+          <button
+            onClick={signIn}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#fff', border: '1.5px solid #dadce0', borderRadius: 12, padding: '13px 20px', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#3c4043', width: '100%', justifyContent: 'center', boxShadow: '0 1px 6px rgba(0,0,0,.08)', fontFamily: 'inherit', transition: 'box-shadow .15s, border-color .15s' }}
+            onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 4px 14px rgba(0,0,0,.13)'; e.currentTarget.style.borderColor = '#bbb'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 1px 6px rgba(0,0,0,.08)'; e.currentTarget.style.borderColor = '#dadce0'; }}
+          >
+            <GoogleIcon />
+            Log masuk dengan Google
+          </button>
+
+          <p style={{ color: 'var(--muted)', fontSize: 11, marginTop: 18, lineHeight: 1.6 }}>
+            Hanya akaun Google yang dibenarkan.<br />
+            Sistem ini untuk kegunaan dalaman UTM sahaja.
+          </p>
+        </div>
       </div>
-      <p style={{ marginTop: 24, color: 'var(--muted)', fontSize: 11 }}>
+
+      <p style={{ marginTop: 20, color: 'var(--muted)', fontSize: 11 }}>
         Dibangunkan oleh <b style={{ color: 'var(--maroon)' }}>Daniel Dun</b> untuk <b style={{ color: 'var(--maroon)' }}>Hadirah</b>
       </p>
     </div>
