@@ -6,7 +6,6 @@ import { Dashboard } from './Dashboard';
 import { DocumentStudio } from './DocumentStudio';
 import { DocumentLibrary } from './DocumentLibrary';
 import { CMGDTracker } from './CMGDTracker';
-import { MeetingScheduler } from './MeetingScheduler';
 export default function App() {
   const { user, loading } = useAuth();
   const [page, setPage] = useState<Page>('dashboard');
@@ -25,10 +24,7 @@ export default function App() {
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper)' }}>
-        <div style={{ textAlign: 'center', color: 'var(--muted)' }}>
-          <div style={{ fontSize: 28, marginBottom: 10 }}>⏳</div>
-          <div style={{ fontSize: 13 }}>Memuatkan…</div>
-        </div>
+        <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>Memuatkan…</div>
       </div>
     );
   }
@@ -41,7 +37,6 @@ export default function App() {
       {page === 'studio' && <DocumentStudio projectId="demo-project" onSaved={() => {}} />}
       {page === 'library' && <DocumentLibrary onCreateNew={() => setPage('studio')} />}
       {page === 'cmgd' && <CMGDTracker />}
-      {page === 'meetings' && <MeetingScheduler />}
     </Layout>
   );
 }

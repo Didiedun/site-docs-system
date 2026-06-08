@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { useAuth } from './AuthProvider';
 
-export type Page = 'dashboard' | 'studio' | 'library' | 'cmgd' | 'meetings';
+export type Page = 'dashboard' | 'studio' | 'library' | 'cmgd';
 
 interface NavItem { id: Page; label: string; short: string }
 const NAV: NavItem[] = [
@@ -9,7 +9,6 @@ const NAV: NavItem[] = [
   { id: 'studio',    label: 'Jana Dokumen',  short: 'JD' },
   { id: 'library',   label: 'Arkib Dokumen', short: 'AD' },
   { id: 'cmgd',      label: 'CMGD',          short: 'CG' },
-  { id: 'meetings',  label: 'Mesyuarat',     short: 'MS' },
 ];
 
 export function Layout({ page, onNavigate, children }: { page: Page; onNavigate: (p: Page) => void; children: ReactNode }) {
