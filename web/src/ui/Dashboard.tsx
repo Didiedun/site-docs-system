@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { listCMGD, listMeetings, listArchivedDocs, cmgdStatus, type CMGDItem, type MeetingRecord, type ArchivedDoc } from '../infrastructure/supabase/repositories';
 import { useAuth } from './AuthProvider';
+import { DocViewerModal } from './DocViewerModal';
 
 const STATUS_COLOR: Record<string, string> = {
   overdue: '#b00020',
@@ -62,6 +63,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: 'cmgd' | 'meetings' 
   }, []);
 
   const [docKind, setDocKind] = useState<'all' | 'diary' | 'memo' | 'minit'>('all');
+  const [viewing, setViewing] = useState<ArchivedDoc | null>(null);
 
   const firstName = (user?.user_metadata?.['full_name'] as string | undefined)?.split(' ')[0] ?? 'Selamat datang';
   const now = new Date();
@@ -160,7 +162,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: 'cmgd' | 'meetings' 
                 <div style={{ fontWeight: 600, fontSize: 13 }}>{d.title}</div>
                 <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 1 }}>{d.project_name} · {d.created_at ? fmtDate(d.created_at.slice(0, 10)) : ''}</div>
               </div>
-              <a href={d.public_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: 'var(--maroon)', fontWeight: 600, textDecoration: 'none', flexShrink: 0 }}>Buka</a>
+              <button onClick={() => setViewing(d)} style={{ background: 'none', borderTop: 'none', borderRight: 'none', borderBottom: 'none', borderLeft: 'none', fontSize: 12, color: 'var(--maroon)', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0, padding: 0 }}>Buka</button>
             </div>
           ))
         )}
@@ -172,6 +174,14 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: 'cmgd' | 'meetings' 
           + Jana Dokumen Baru
         </button>
       </div>
+
+      {viewing && (
+        <DocViewerModal
+          url={viewing.public_url}
+          title={viewing.title}
+          onClose={() => setViewing(null)}
+        />
+      )}
     </div>
   );
 }

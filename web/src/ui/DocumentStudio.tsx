@@ -1,5 +1,6 @@
 import { useMemo, useState, ChangeEvent, CSSProperties } from 'react';
 import { uploadDocumentFile, saveArchivedDoc } from '../infrastructure/supabase/repositories';
+
 import { MEMO_TYPES } from '../domain/memoTypes';
 import { ProgrammeSnapshot } from '../domain/entities';
 import { buildPorts } from '../composition';
@@ -210,41 +211,13 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
     if (!activeHtml) return;
     setSaveStatus('saving');
     try {
-      // Load the full HTML into a hidden off-screen iframe so fonts and
-      // images render before html2canvas captures it.
-      const pdfBlob = await new Promise<Blob>((resolve, reject) => {
-        const iframe = document.createElement('iframe');
-        iframe.style.cssText = 'position:fixed;top:0;left:0;width:794px;height:1122px;opacity:0;pointer-events:none;z-index:-1;border:0;';
-        iframe.srcdoc = activeHtml;
-        document.body.appendChild(iframe);
-
-        iframe.onload = () => {
-          // Give fonts/images an extra moment to settle
-          setTimeout(async () => {
-            try {
-              const html2pdf = (await import('html2pdf.js')).default;
-              const body = iframe.contentDocument?.body;
-              if (!body) throw new Error('Gagal akses iframe');
-              const blob: Blob = await html2pdf()
-                .set({
-                  margin: 0,
-                  image: { type: 'jpeg', quality: 0.97 },
-                  html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
-                  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                })
-                .from(body)
-                .outputPdf('blob');
-              resolve(blob);
-            } catch (e) { reject(e); }
-            finally { document.body.removeChild(iframe); }
-          }, 600);
-        };
-        iframe.onerror = () => { document.body.removeChild(iframe); reject(new Error('Gagal muatkan dokumen')); };
-      });
-
       const ts = new Date().toISOString().replace(/[:.]/g, '-');
-      const pathSuffix = `${activeKind}/${ts}.pdf`;
-      const { publicUrl, fullPath } = await uploadDocumentFile(pdfBlob, pathSuffix, 'application/pdf');
+      const pathSuffix = `${activeKind}/${ts}.html`;
+      const { publicUrl, fullPath } = await uploadDocumentFile(
+        new Blob([activeHtml], { type: 'text/html' }),
+        pathSuffix,
+        'text/html',
+      );
       const title = activeKind === 'diary'
         ? `Site Diary — ${tajukKerja} (${fromISO(tarikhISO).tarikh || ts.slice(0, 10)})`
         : activeKind === 'memo'

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { listArchivedDocs, deleteArchivedDoc, type ArchivedDoc } from '../infrastructure/supabase/repositories';
+import { DocViewerModal } from './DocViewerModal';
 
 const KIND_LABEL: Record<string, string> = { diary: 'Site Diary', memo: 'Memo', minit: 'Minit Mesyuarat' };
 
@@ -15,6 +16,7 @@ export function DocumentLibrary({ onCreateNew }: { onCreateNew: () => void }) {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [kindFilter, setKindFilter] = useState<'all' | 'diary' | 'memo' | 'minit'>('all');
+  const [viewing, setViewing] = useState<ArchivedDoc | null>(null);
 
   async function reload() {
     setLoading(true);
@@ -90,9 +92,9 @@ export function DocumentLibrary({ onCreateNew }: { onCreateNew: () => void }) {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                <a href={d.public_url} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '6px 14px', fontSize: 12, textDecoration: 'none' }}>
+                <button className="btn btn-primary" style={{ padding: '6px 14px', fontSize: 12 }} onClick={() => setViewing(d)}>
                   Buka
-                </a>
+                </button>
                 <button className="btn" style={{ padding: '6px 10px', fontSize: 12, color: '#b00020', borderColor: '#f6c9c9' }} onClick={() => handleDelete(d)}>
                   Padam
                 </button>
@@ -105,6 +107,14 @@ export function DocumentLibrary({ onCreateNew }: { onCreateNew: () => void }) {
       <div style={{ marginTop: 16, fontSize: 12, color: 'var(--muted)' }}>
         {filtered.length} daripada {docs.length} dokumen dipaparkan
       </div>
+
+      {viewing && (
+        <DocViewerModal
+          url={viewing.public_url}
+          title={viewing.title}
+          onClose={() => setViewing(null)}
+        />
+      )}
     </div>
   );
 }
