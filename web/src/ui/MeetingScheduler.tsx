@@ -247,7 +247,7 @@ export function MeetingScheduler() {
               <div className="grid2">
                 <div className="field">
                   <label>Tarikh &amp; Masa Mula *</label>
-                  <input type="datetime-local" value={form.start_time} onChange={(e) => setForm((p) => ({ ...p, start_time: e.target.value }))} />
+                  <input type="datetime-local" value={form.start_time} onChange={(e) => { setForm((p) => ({ ...p, start_time: e.target.value })); setFreeBusy(null); }} />
                 </div>
                 <div className="field">
                   <label>Tarikh &amp; Masa Tamat</label>
@@ -258,39 +258,47 @@ export function MeetingScheduler() {
                 <label>Peserta (emel, pisahkan dengan koma atau baris baru)</label>
                 <textarea style={{ minHeight: 80 }} value={form.attendeesRaw} onChange={(e) => { setForm((p) => ({ ...p, attendeesRaw: e.target.value })); setFreeBusy(null); }} placeholder="hadirah@utm.my&#10;kontraktor@email.com" />
               </div>
-              {session?.provider_token && form.start_time && (
+              {form.start_time && (
                 <div style={{ marginBottom: 12 }}>
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={checkAvailability}
-                    disabled={checkingAvail}
-                    style={{ padding: '6px 14px', fontSize: 12 }}
-                  >
-                    {checkingAvail ? 'Menyemak…' : 'Semak Ketersediaan Peserta'}
-                  </button>
-                  {freeBusy && (
-                    <div style={{ marginTop: 10, background: '#f8f9fa', border: '1px solid var(--line)', borderRadius: 9, padding: '10px 12px', fontSize: 12 }}>
-                      <b style={{ display: 'block', marginBottom: 6 }}>Ketersediaan — {form.start_time.slice(0, 10)}:</b>
-                      {Object.entries(freeBusy).map(([email, cal]) => (
-                        <div key={email} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 5, flexWrap: 'wrap' }}>
-                          <span style={{ fontWeight: 600, minWidth: 120 }}>{email === 'primary' ? 'Anda' : email}:</span>
-                          {cal.errors && cal.errors.length > 0 ? (
-                            <span style={{ color: '#888', fontStyle: 'italic' }}>Kalendar tidak boleh diakses</span>
-                          ) : !cal.busy || cal.busy.length === 0 ? (
-                            <span style={{ color: '#1a6e3c', fontWeight: 600 }}>Bebas sepanjang hari</span>
-                          ) : (
-                            <span style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                              {cal.busy.map((b, i) => (
-                                <span key={i} style={{ background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 4, padding: '1px 6px', color: '#b00020', fontWeight: 600 }}>
-                                  {fmtTime(b.start)}–{fmtTime(b.end)}
-                                </span>
-                              ))}
-                            </span>
-                          )}
-                        </div>
-                      ))}
+                  {!session?.provider_token ? (
+                    <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 9, padding: '8px 12px', fontSize: 12 }}>
+                      Log keluar dan log masuk semula untuk mendayakan semakan ketersediaan peserta.
                     </div>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className="btn"
+                        onClick={checkAvailability}
+                        disabled={checkingAvail}
+                        style={{ padding: '6px 14px', fontSize: 12 }}
+                      >
+                        {checkingAvail ? 'Menyemak…' : 'Semak Ketersediaan Peserta'}
+                      </button>
+                      {freeBusy && (
+                        <div style={{ marginTop: 10, background: '#f8f9fa', border: '1px solid var(--line)', borderRadius: 9, padding: '10px 12px', fontSize: 12 }}>
+                          <b style={{ display: 'block', marginBottom: 6 }}>Ketersediaan — {form.start_time.slice(0, 10)}:</b>
+                          {Object.entries(freeBusy).map(([email, cal]) => (
+                            <div key={email} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 5, flexWrap: 'wrap' }}>
+                              <span style={{ fontWeight: 600, minWidth: 140, flexShrink: 0 }}>{email === 'primary' ? 'Anda' : email}:</span>
+                              {cal.errors && cal.errors.length > 0 ? (
+                                <span style={{ color: '#888', fontStyle: 'italic' }}>Kalendar tidak boleh diakses</span>
+                              ) : !cal.busy || cal.busy.length === 0 ? (
+                                <span style={{ color: '#1a6e3c', fontWeight: 600 }}>Bebas sepanjang hari</span>
+                              ) : (
+                                <span style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                                  {cal.busy.map((b, i) => (
+                                    <span key={i} style={{ background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 4, padding: '1px 6px', color: '#b00020', fontWeight: 600 }}>
+                                      {fmtTime(b.start)}–{fmtTime(b.end)}
+                                    </span>
+                                  ))}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}

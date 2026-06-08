@@ -3,6 +3,15 @@
 import { LB_CSS, renderLaporanBergambar } from './laporanBergambar';
 type Dict = Record<string, any>;
 const esc = (s: any) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' } as Dict)[c]);
+function to12h(t: string) {
+  if (!t) return '';
+  const [hStr, mStr] = String(t).split(':');
+  let h = parseInt(hStr, 10);
+  const m = (mStr || '00').padStart(2, '0');
+  const ampm = h < 12 ? 'PG' : 'PTG';
+  if (h === 0) h = 12; else if (h > 12) h -= 12;
+  return `${h}:${m} ${ampm}`;
+}
 const bx = (v: any) => `<span class="bx">${esc(v)}</span>`;
 const ck = (on: any) => `<span class="ck">${on ? '&#10003;' : ''}</span>`;
 const cuaca = (sel: string) => ['cerah', 'mendung', 'hujan']
@@ -87,7 +96,7 @@ export function renderDiary(d: Dict): string {
         <div class="c" style="flex:1"><div class="lbl">*PENGURUSAN TAPAK</div>
           <div class="frow">keselamatan ${ck(peng['keselamatan'])} &nbsp; kebersihan ${ck(peng['kebersihan'])}</div>
           <div class="frow">papan tanda ${ck(peng['papan tanda'])} &nbsp; pakaian kerja ${ck(peng['pakaian kerja'])}</div>
-          <div class="frow">waktu kerja : <span class="bx" style="min-width:40px">${esc(d.waktuMula || '')}</span> &ndash; <span class="bx" style="min-width:40px">${esc(d.waktuTamat || '')}</span></div></div>
+          <div class="frow">waktu kerja : <span class="bx" style="min-width:56px">${esc(to12h(d.waktuMula))}</span> &ndash; <span class="bx" style="min-width:56px">${esc(to12h(d.waktuTamat))}</span></div></div>
       </div>
     </div>
     <div class="cols" style="grid-template-columns:3fr 3fr 4fr">
