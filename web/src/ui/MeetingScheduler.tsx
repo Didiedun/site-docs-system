@@ -70,6 +70,41 @@ export function MeetingScheduler() {
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
   const [freeBusy, setFreeBusy] = useState<Record<string, FreeBusyCal> | null>(null);
   const [checkingAvail, setCheckingAvail] = useState(false);
+  const [contacts, setContacts] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('utm_contacts') || '[]') as string[]; }
+    catch { return []; }
+  });
+  const [contactSearch, setContactSearch] = useState('');
+
+  function saveContactsFromAttendees(emails: string[]) {
+    setContacts((prev) => {
+      const merged = [...new Set([...emails.filter(Boolean), ...prev])].slice(0, 100);
+      localStorage.setItem('utm_contacts', JSON.stringify(merged));
+      return merged;
+    });
+  }
+
+  function addContactManually(email: string) {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed || !trimmed.includes('@')) return;
+    saveContactsFromAttendees([trimmed]);
+  }
+
+  function removeContact(email: string) {
+    setContacts((prev) => {
+      const updated = prev.filter((c) => c !== email);
+      localStorage.setItem('utm_contacts', JSON.stringify(updated));
+      return updated;
+    });
+  }
+
+  function addToAttendees(email: string) {
+    const cur = form.attendeesRaw.trim();
+    const already = cur.split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
+    if (already.includes(email)) return;
+    setForm((p) => ({ ...p, attendeesRaw: cur ? cur + '\n' + email : email }));
+    setFreeBusy(null);
+  }
 
   async function reload() {
     setLoading(true);
@@ -154,6 +189,7 @@ export function MeetingScheduler() {
         calendar_event_id: calendarEventId,
         attendees,
       });
+      saveContactsFromAttendees(attendees);
       setShowForm(false);
       await reload();
     } catch (e) { setError(String(e)); }
@@ -255,8 +291,60 @@ export function MeetingScheduler() {
                 </div>
               </div>
               <div className="field">
-                <label>Peserta (emel, pisahkan dengan koma atau baris baru)</label>
-                <textarea style={{ minHeight: 80 }} value={form.attendeesRaw} onChange={(e) => { setForm((p) => ({ ...p, attendeesRaw: e.target.value })); setFreeBusy(null); }} placeholder="hadirah@utm.my&#10;kontraktor@email.com" />
+                <label>Peserta</label>
+                {/* Saved contacts picker */}
+                <div style={{ marginBottom: 6 }}>
+                  <input
+                    placeholder="Cari kenalan tersimpan atau tambah emel baharu…"
+                    value={contactSearch}
+                    onChange={(e) => setContactSearch(e.target.value)}
+                    onKeyDown={(e) => {
+                      if ((e.key === 'Enter' || e.key === ',') && contactSearch.includes('@')) {
+                        e.preventDefault();
+                        addContactManually(contactSearch);
+                        addToAttendees(contactSearch.trim().toLowerCase());
+                        setContactSearch('');
+                      }
+                    }}
+                    style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--line)', borderRadius: 8, font: 'inherit', fontSize: 13 }}
+                  />
+                  <div style={{ marginTop: 5, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {contacts
+                      .filter((c) => !contactSearch || c.toLowerCase().includes(contactSearch.toLowerCase()))
+                      .slice(0, 15)
+                      .map((email) => (
+                        <span key={email} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 6, padding: '2px 8px', fontSize: 12 }}>
+                          <button
+                            type="button"
+                            onClick={() => addToAttendees(email)}
+                            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', fontSize: 12, color: 'var(--maroon)', fontWeight: 600 }}
+                          >
+                            {email}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeContact(email)}
+                            style={{ background: 'none', border: 'none', padding: '0 2px', cursor: 'pointer', color: '#999', fontSize: 14, lineHeight: 1 }}
+                            title="Padam kenalan"
+                          >
+                            &times;
+                          </button>
+                        </span>
+                      ))}
+                    {contacts.length === 0 && (
+                      <span style={{ fontSize: 11.5, color: 'var(--muted)', fontStyle: 'italic' }}>
+                        Taip emel di atas dan tekan Enter untuk menyimpan kenalan baharu.
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <textarea
+                  style={{ minHeight: 70 }}
+                  value={form.attendeesRaw}
+                  onChange={(e) => { setForm((p) => ({ ...p, attendeesRaw: e.target.value })); setFreeBusy(null); }}
+                  placeholder="hadirah@utm.my&#10;kontraktor@email.com"
+                />
+                <p className="hint">Klik nama kenalan di atas untuk tambah, atau taip terus dalam kotak ini.</p>
               </div>
               {form.start_time && (
                 <div style={{ marginBottom: 12 }}>
@@ -303,7 +391,8 @@ export function MeetingScheduler() {
                 </div>
               )}
               <div style={{ background: '#f0f4ff', border: '1px solid #c7d4f8', borderRadius: 9, padding: '10px 12px', fontSize: 12, marginBottom: 12 }}>
-                Google Meet link akan dicipta secara automatik dan jemputan dihantar kepada semua peserta (jika token Google aktif).
+                Google Meet link dan jemputan kalendar akan dihantar kepada semua peserta secara automatik.
+                {!session?.provider_token && <><br /><b>Log keluar &amp; log masuk semula</b> untuk mengaktifkan Google Meet.</>}
               </div>
               {error && <div className="err" style={{ marginBottom: 12 }}>{error}</div>}
               <div className="btn-row" style={{ paddingBottom: 8 }}>
