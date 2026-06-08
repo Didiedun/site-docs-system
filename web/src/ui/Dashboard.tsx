@@ -61,12 +61,15 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: 'cmgd' | 'meetings' 
       .finally(() => setLoading(false));
   }, []);
 
+  const [docKind, setDocKind] = useState<'all' | 'diary' | 'memo' | 'minit'>('all');
+
   const firstName = (user?.user_metadata?.['full_name'] as string | undefined)?.split(' ')[0] ?? 'Selamat datang';
   const now = new Date();
   const upcoming = meetings.filter((m) => new Date(m.start_time) >= now).slice(0, 3);
   const alertCmgds = cmgds.filter((c) => { const s = cmgdStatus(c); return s === 'overdue' || s === 'due_soon'; });
   const overdueCt = cmgds.filter((c) => cmgdStatus(c) === 'overdue').length;
   const dueSoonCt = cmgds.filter((c) => cmgdStatus(c) === 'due_soon').length;
+  const filteredDocs = docKind === 'all' ? docs : docs.filter((d) => d.kind === docKind);
 
   return (
     <div style={{ maxWidth: 900 }}>
@@ -138,10 +141,17 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: 'cmgd' | 'meetings' 
 
       {/* Recent documents */}
       <Section title="Dokumen Terkini" action="Lihat arkib" onAction={() => onNavigate('library')}>
-        {loading ? <Skeleton /> : docs.length === 0 ? (
-          <Empty text="Tiada dokumen tersimpan. Jana dokumen dan simpan ke sistem." />
+        <div className="seg" style={{ marginBottom: 12 }}>
+          {(['all', 'diary', 'memo', 'minit'] as const).map((k) => (
+            <button key={k} className={docKind === k ? 'active' : ''} onClick={() => setDocKind(k)}>
+              {k === 'all' ? `Semua (${docs.length})` : `${KIND_LABEL[k]} (${docs.filter(d => d.kind === k).length})`}
+            </button>
+          ))}
+        </div>
+        {loading ? <Skeleton /> : filteredDocs.length === 0 ? (
+          <Empty text={docs.length === 0 ? 'Tiada dokumen tersimpan. Jana dokumen dan simpan ke sistem.' : `Tiada dokumen jenis ${KIND_LABEL[docKind]}.`} />
         ) : (
-          docs.slice(0, 5).map((d) => (
+          filteredDocs.slice(0, 5).map((d) => (
             <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#fff', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px', marginBottom: 8 }}>
               <div style={{ width: 36, height: 36, background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--maroon)', letterSpacing: '.03em' }}>{KIND_LABEL[d.kind] ?? d.kind}</span>

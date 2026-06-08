@@ -175,10 +175,13 @@ export async function deleteArchivedDoc(id: string, htmlPath: string): Promise<v
 }
 
 export async function uploadDocumentHTML(html: string, pathSuffix: string): Promise<{ publicUrl: string; fullPath: string }> {
+  return uploadDocumentFile(new Blob([html], { type: 'text/html' }), pathSuffix, 'text/html');
+}
+
+export async function uploadDocumentFile(blob: Blob, pathSuffix: string, contentType: string): Promise<{ publicUrl: string; fullPath: string }> {
   const userId = (await supabase.auth.getUser()).data.user?.id ?? 'shared';
   const fullPath = `${userId}/${pathSuffix}`;
-  const blob = new Blob([html], { type: 'text/html' });
-  const { error } = await supabase.storage.from('documents').upload(fullPath, blob, { upsert: true, contentType: 'text/html' });
+  const { error } = await supabase.storage.from('documents').upload(fullPath, blob, { upsert: true, contentType });
   if (error) throw error;
   const { data } = supabase.storage.from('documents').getPublicUrl(fullPath);
   return { publicUrl: data.publicUrl, fullPath };
