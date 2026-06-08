@@ -78,7 +78,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: 'cmgd' | 'library' |
       </div>
 
       {/* Two-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 22, alignItems: 'start' }}>
+      <div className="dash-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 22, alignItems: 'start' }}>
 
         {/* LEFT — alerts + recent docs */}
         <div>

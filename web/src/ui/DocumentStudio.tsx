@@ -241,7 +241,7 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(340px,420px) 1fr', gap: 0, width: '100%', minHeight: 0 }}>
+    <div className="studio-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(340px,420px) 1fr', gap: 0, width: '100%', minHeight: 0 }}>
 
     {/* LEFT — form panel */}
     <div style={{ background: '#fff', borderRight: '1px solid var(--line)', padding: '20px 22px', overflowY: 'auto' }}>
@@ -436,7 +436,7 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
     </div>
 
     {/* RIGHT — preview panel */}
-    <div style={{ position: 'sticky', top: 0, height: 'calc(100vh - 63px)', display: 'flex', flexDirection: 'column', background: '#f2efe9', overflow: 'hidden' }}>
+    <div className={`studio-preview${hasDoc ? ' has-doc' : ''}`} style={{ position: 'sticky', top: 0, height: 'calc(100vh - 63px)', display: 'flex', flexDirection: 'column', background: '#f2efe9', overflow: 'hidden' }}>
       {!hasDoc ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center', gap: 12 }}>
           <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--maroon)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

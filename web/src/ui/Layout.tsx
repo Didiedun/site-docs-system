@@ -44,7 +44,7 @@ export function Layout({ page, onNavigate, children }: { page: Page; onNavigate:
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Sidebar */}
-        <aside style={{ width: collapsed ? 54 : 200, minWidth: collapsed ? 54 : 200, background: '#fff', borderRight: '1px solid var(--line)', display: 'flex', flexDirection: 'column', transition: 'width .2s, min-width .2s', overflow: 'hidden', flexShrink: 0 }}>
+        <aside className="layout-sidebar" style={{ width: collapsed ? 54 : 200, minWidth: collapsed ? 54 : 200, background: '#fff', borderRight: '1px solid var(--line)', display: 'flex', flexDirection: 'column', transition: 'width .2s, min-width .2s', overflow: 'hidden', flexShrink: 0 }}>
           <button
             onClick={() => setCollapsed(!collapsed)}
             title={collapsed ? 'Buka sidebar' : 'Tutup sidebar'}
@@ -95,9 +95,21 @@ export function Layout({ page, onNavigate, children }: { page: Page; onNavigate:
         </aside>
 
         {/* Main content */}
-        <main style={{ flex: 1, padding: '22px 22px 40px', overflowY: 'auto', background: 'var(--paper)' }}>
+        <main className="layout-main" style={{ flex: 1, minWidth: 0, padding: '22px 22px 40px', overflowY: 'auto', background: 'var(--paper)' }}>
           {children}
         </main>
+      </div>
+
+      {/* Mobile bottom nav */}
+      <div className="mob-nav">
+        <div className="mob-nav-inner">
+          {NAV.map((n) => (
+            <button key={n.id} className={`mob-nav-btn${page === n.id ? ' active' : ''}`} onClick={() => onNavigate(n.id)}>
+              <span className="mob-nav-ico">{n.short}</span>
+              <span>{n.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

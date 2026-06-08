@@ -17,7 +17,6 @@
   .brand-title{font-family:'Sora',sans-serif;font-weight:700;font-size:18px}
   .brand-sub{font-size:11.5px;opacity:.85;margin-top:1px}
   .gold-rule{height:3px;background:var(--gold)}
-  .app-main{flex:1;width:100%;max-width:860px;margin:0 auto;padding:22px 16px 40px}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
   .card h2{font-family:'Sora',sans-serif;font-size:15px;margin:0 0 2px}
@@ -44,6 +43,24 @@
   .frame-wrap{margin-top:16px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
   .app-footer{text-align:center;color:var(--muted);font-size:12px;padding:18px;border-top:1px solid var(--line)}
   .app-footer b{color:var(--maroon)}
+  /* ── Mobile bottom nav ── */
+  .mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:200;padding-bottom:env(safe-area-inset-bottom,0)}
+  .mob-nav-inner{display:flex}
+  .mob-nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px 7px;background:none;border:none;cursor:pointer;font:inherit;font-size:9.5px;font-weight:600;color:var(--muted);-webkit-tap-highlight-color:transparent}
+  .mob-nav-btn.active{color:var(--maroon)}
+  .mob-nav-ico{width:32px;height:22px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;letter-spacing:.03em}
+  .mob-nav-btn.active .mob-nav-ico{background:var(--maroon);color:#fff}
+  /* ── Responsive ── */
+  @media(max-width:767px){
+    .layout-sidebar{display:none!important}
+    .mob-nav{display:block}
+    .layout-main{padding-bottom:72px!important}
+    .studio-grid{grid-template-columns:1fr!important}
+    .studio-preview{display:none!important}
+    .studio-preview.has-doc{display:flex!important;position:static!important;height:auto!important;overflow:auto!important;min-height:70vh}
+    .dash-grid{grid-template-columns:1fr!important}
+    .grid2{grid-template-columns:1fr!important}
+  }
   @media(max-width:560px){.grid2{grid-template-columns:1fr}}
 </style>
 </head>
