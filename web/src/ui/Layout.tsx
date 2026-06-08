@@ -27,10 +27,10 @@ export function Layout({ page, onNavigate, children }: { page: Page; onNavigate:
           <div style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 15, lineHeight: 1.2 }}>Sistem Dokumen Tapak</div>
           <div style={{ fontSize: 11, opacity: 0.8 }}>UTM · Jabatan TNC (Pembangunan)</div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-          <div style={{ textAlign: 'right', fontSize: 12 }}>
-            <div style={{ fontWeight: 600, lineHeight: 1.2 }}>{fullName ?? user?.email?.split('@')[0]}</div>
-            <div style={{ opacity: 0.7, fontSize: 10.5 }}>{user?.email}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+          <div className="header-user-text" style={{ textAlign: 'right', fontSize: 12, minWidth: 0 }}>
+            <div style={{ fontWeight: 600, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fullName ?? user?.email?.split('@')[0]}</div>
+            <div style={{ opacity: 0.7, fontSize: 10.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</div>
           </div>
           {avatarUrl && (
             <img src={avatarUrl} alt="" style={{ height: 30, width: 30, borderRadius: '50%', border: '2px solid rgba(255,255,255,.4)' }} />

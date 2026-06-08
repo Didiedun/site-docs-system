@@ -176,21 +176,24 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
     if (doc) { doc.designMode = 'off'; if (doc.body) doc.body.style.outline = ''; }
     setEditing(false);
 
-    // Mobile browsers don't support contentWindow.print() reliably —
-    // open the HTML in a new tab so the native print/share sheet works.
-    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-      const html = doc ? '<!doctype html>' + doc.documentElement.outerHTML : '';
+    const html = doc ? '<!doctype html>' + doc.documentElement.outerHTML : '';
+    // Open a real window so every browser (desktop + mobile) gets a print dialog
+    const pw = window.open('', '_blank', 'width=900,height=700');
+    if (!pw) {
+      // Popup blocked — download the HTML file as fallback
       const blob = new Blob([html], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.target = '_blank'; a.rel = 'noopener';
+      a.href = url; a.download = 'dokumen.html';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
       return;
     }
-
-    f?.contentWindow?.focus();
-    f?.contentWindow?.print();
+    pw.document.open();
+    pw.document.write(html);
+    pw.document.close();
+    // Give fonts/images a moment to load before triggering print
+    setTimeout(() => { pw.focus(); pw.print(); }, 400);
   }
 
   // Export the document (including any inline edits) as a .doc that Word /

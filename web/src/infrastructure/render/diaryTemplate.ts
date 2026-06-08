@@ -75,11 +75,23 @@ export function renderDiary(d: Dict): string {
   const ol = (a: any) => (Array.isArray(a) && a.length ? `<ol class="wl">${a.map((x: any) => `<li>${esc(x)}</li>`).join('')}</ol>` : esc(a));
   const bahan = (d.bahan && d.bahan.length ? d.bahan : [['', ''], ['', ''], ['', ''], ['', '']]);
 
-  // Split perlaksanaan by session
+  // Split perlaksanaan into pagi / petang pages
   const allPerlak: Dict[] = d.perlaksanaan || [];
-  const pagiRows = allPerlak.filter((p: Dict) => isPagi(p.masa));
-  const petangRows = allPerlak.filter((p: Dict) => !isPagi(p.masa));
-  const hasBoth = pagiRows.length > 0 && petangRows.length > 0;
+  const naturalPagi   = allPerlak.filter((p: Dict) =>  isPagi(p.masa));
+  const naturalPetang = allPerlak.filter((p: Dict) => !isPagi(p.masa));
+  const naturalSplit  = naturalPagi.length > 0 && naturalPetang.length > 0;
+
+  let pagiRows: Dict[], petangRows: Dict[], hasBoth: boolean;
+  if (naturalSplit) {
+    // AI generated distinct Pagi + Petang entries — use them directly
+    pagiRows = naturalPagi; petangRows = naturalPetang; hasBoth = true;
+  } else if (allPerlak.length >= 5) {
+    // All same-session but many rows — split in half for clean printing
+    const mid = Math.ceil(allPerlak.length / 2);
+    pagiRows = allPerlak.slice(0, mid); petangRows = allPerlak.slice(mid); hasBoth = true;
+  } else {
+    pagiRows = allPerlak; petangRows = []; hasBoth = false;
+  }
 
   function buildPerlakHtml(rows: Dict[]): string {
     return rows.map((p: Dict) => `<tr>
