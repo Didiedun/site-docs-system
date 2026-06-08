@@ -110,7 +110,7 @@ export function CMGDTracker() {
   const dueSoonCt = items.filter((i) => cmgdStatus(i) === 'due_soon').length;
 
   return (
-    <div style={{ maxWidth: 880 }}>
+    <div style={{ width: '100%' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 10 }}>

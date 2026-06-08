@@ -1,4 +1,4 @@
-import { useMemo, useState, ChangeEvent, CSSProperties } from 'react';
+import { useMemo, useState, ChangeEvent } from 'react';
 import { uploadDocumentFile, saveArchivedDoc } from '../infrastructure/supabase/repositories';
 
 import { MEMO_TYPES } from '../domain/memoTypes';
@@ -21,13 +21,6 @@ const UNIT_DEFAULT = 'Seksyen Pembangunan\nBahagian Pengurusan Aset\nJabatan Tim
 const Sec = ({ children }: { children: any }) => (
   <div style={{ fontWeight: 700, fontSize: 13, margin: '18px 0 8px', paddingTop: 12, borderTop: '1px solid #e6e0d8' }}>{children}</div>
 );
-const sBackdrop: CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 10, zIndex: 1000, overflow: 'auto' };
-const sModal: CSSProperties = { background: '#fff', borderRadius: 12, width: '100%', maxWidth: 920, margin: 'auto', boxShadow: '0 12px 48px rgba(0,0,0,.35)', display: 'flex', flexDirection: 'column', maxHeight: '96vh' };
-const sHead: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderBottom: '1px solid #e6e0d8' };
-const sActions: CSSProperties = { display: 'flex', gap: 8, flexWrap: 'wrap', padding: '10px 14px', borderBottom: '1px solid #e6e0d8' };
-const sBody: CSSProperties = { overflow: 'auto', flex: 1, background: '#f2efe9' };
-const sX: CSSProperties = { border: 0, background: 'transparent', fontSize: 24, lineHeight: 1, cursor: 'pointer', color: '#6b6560', padding: '0 6px' };
-
 export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () => void }) {
   const ports = useMemo(() => buildPorts(), []);
   const [kind, setKind] = useState<Kind>('diary');
@@ -68,7 +61,6 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
 
   const [memoHtml, setMemoHtml] = useState('');
   const [editing, setEditing] = useState(false);
-  const [showDoc, setShowDoc] = useState(false);
 
   // minit — header, attendance and signatures are user-entered; AI writes only the body
   const [mmTitle, setMmTitle] = useState('');
@@ -163,7 +155,6 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
         const { html } = await generateSiteDiary(ports, { projectId, notes, header: { tajuk: tajukKerja, bil, tarikh, hari, waktuMula, waktuTamat }, lb: lbPayload(), snapshot: snapshot ?? undefined });
         setDiaryHtml(html);
       }
-      setShowDoc(true);
     } catch (err) { setError(err instanceof Error ? err.message : JSON.stringify(err)); }
     finally { setBusy(false); }
   }
@@ -236,9 +227,12 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
   }
 
   return (
-    <div className="card">
-      <h2>Jana Dokumen</h2>
-      <p className="lead">Maklumat rasmi (No. Rujukan, Bil, tarikh, nama, kapsyen gambar) anda isi sendiri — AI tulis badan &amp; jadual sahaja, dan tidak mereka nombor/tarikh.</p>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(340px,420px) 1fr', gap: 0, width: '100%', minHeight: 0 }}>
+
+    {/* LEFT — form panel */}
+    <div style={{ background: '#fff', borderRight: '1px solid var(--line)', padding: '20px 22px', overflowY: 'auto' }}>
+      <div style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 16, marginBottom: 3, color: 'var(--maroon)' }}>Jana Dokumen</div>
+      <p style={{ color: 'var(--muted)', fontSize: 12, margin: '0 0 16px', lineHeight: 1.5 }}>Maklumat rasmi (No. Rujukan, Bil, tarikh, nama) anda isi — AI draf badan &amp; jadual sahaja.</p>
 
       <div className="field">
         <div className="seg">
@@ -418,50 +412,67 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
         </>
       )}
 
-      <div className="btn-row">
-        <button className="btn btn-primary" onClick={onGenerate} disabled={busy || !story}>{busy ? 'Menjana… (backend mungkin sedang bangun ~30s)' : 'Jana Dokumen'}</button>
-        {hasDoc && !showDoc && <button className="btn" onClick={() => setShowDoc(true)}>Buka dokumen</button>}
+      <div style={{ marginTop: 14 }}>
+        <button className="btn btn-primary" style={{ width: '100%', padding: '11px 0', fontSize: 14 }} onClick={onGenerate} disabled={busy || !story}>
+          {busy ? 'Menjana… (backend mungkin sedang bangun ~30s)' : 'Jana Dokumen'}
+        </button>
       </div>
 
-      {error && <div className="err">{error}</div>}
+      {error && <div className="err" style={{ marginTop: 12 }}>{error}</div>}
+    </div>
 
-      {/* ---------- Generated document: popup ---------- */}
-      {showDoc && hasDoc && (
-        <div style={sBackdrop} onClick={() => setShowDoc(false)}>
-          <div style={sModal} onClick={(e) => e.stopPropagation()}>
-            <div style={sHead}>
-              <div style={{ fontWeight: 700, fontFamily: 'Sora, sans-serif' }}>Dokumen Dijana</div>
-              <button style={sX} onClick={() => setShowDoc(false)} aria-label="Tutup">×</button>
-            </div>
-            <div style={sActions}>
-              {(diaryHtml || memoHtml || minitHtml) && <button className="btn" onClick={toggleEdit}>{editing ? 'Selesai Edit' : 'Edit'}</button>}
-              {diaryHtml && <button className="btn btn-primary" onClick={() => printFrame('diaryFrame')}>Cetak / Simpan PDF</button>}
-              {diaryHtml && <button className="btn" onClick={() => saveAsWord('diaryFrame', 'site-diary.doc')}>Simpan ke Word</button>}
-              {memoHtml && <button className="btn btn-primary" onClick={() => printFrame('memoFrame')}>Cetak / Simpan PDF</button>}
-              {memoHtml && <button className="btn" onClick={() => saveAsWord('memoFrame', 'memo.doc')}>Simpan ke Word</button>}
-              {minitHtml && <button className="btn btn-primary" onClick={() => printFrame('minitFrame')}>Cetak / Simpan PDF</button>}
-              {minitHtml && <button className="btn" onClick={() => saveAsWord('minitFrame', 'minit-mesyuarat.doc')}>Simpan ke Word</button>}
-              {output && <button className="btn" onClick={() => navigator.clipboard?.writeText(output)}>Salin Teks</button>}
-              {(diaryHtml || memoHtml || minitHtml) && (
-                <button
-                  className="btn"
-                  onClick={saveToSystem}
-                  disabled={saveStatus === 'saving'}
-                  style={{ background: saveStatus === 'saved' ? '#ecfdf5' : saveStatus === 'error' ? '#fdecec' : '#fff', borderColor: saveStatus === 'saved' ? '#a7f3d0' : saveStatus === 'error' ? '#f6c9c9' : 'var(--line)', color: saveStatus === 'saved' ? '#1a6e3c' : saveStatus === 'error' ? '#b00020' : 'var(--ink)' }}
-                >
-                  {saveStatus === 'saving' ? 'Menyimpan…' : saveStatus === 'saved' ? 'Tersimpan!' : saveStatus === 'error' ? 'Gagal' : 'Simpan ke Sistem'}
-                </button>
-              )}
-            </div>
-            <div style={sBody}>
-              {diaryHtml && <iframe id="diaryFrame" title="diary" srcDoc={diaryHtml} style={{ width: '100%', height: 1400, border: 0, background: '#fff' }} />}
-              {memoHtml && <iframe id="memoFrame" title="memo" srcDoc={memoHtml} style={{ width: '100%', height: 1400, border: 0, background: '#fff' }} />}
-              {minitHtml && <iframe id="minitFrame" title="minit" srcDoc={minitHtml} style={{ width: '100%', height: 1400, border: 0, background: '#fff' }} />}
-              {output && <div className="output" style={{ margin: 14 }}>{output}</div>}
+    {/* RIGHT — preview panel */}
+    <div style={{ position: 'sticky', top: 0, height: 'calc(100vh - 63px)', display: 'flex', flexDirection: 'column', background: '#f2efe9', overflow: 'hidden' }}>
+      {!hasDoc ? (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center', gap: 12 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--maroon)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: '#fff', fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: 22 }}>A4</span>
+          </div>
+          <div style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>Pratonton Dokumen</div>
+          <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0, lineHeight: 1.6, maxWidth: 300 }}>
+            Isi maklumat di sebelah kiri dan klik <b>Jana Dokumen</b> — dokumen akan muncul di sini.
+          </p>
+          <div style={{ marginTop: 8, background: '#fff', border: '1px solid var(--line)', borderRadius: 10, padding: '14px 18px', width: '100%', maxWidth: 320, textAlign: 'left' }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--maroon)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.04em' }}>Jenis Aktif</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{kind === 'diary' ? 'Site Diary' : kind === 'memo' ? 'Memo' : 'Minit Mesyuarat'}</div>
+            <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 4 }}>
+              {kind === 'diary' ? 'Laporan Harian Tapak Bina UTM' : kind === 'memo' ? 'Memo rasmi gaya rumah UTM' : 'Minit Mesyuarat Tapak/Pemantauan'}
             </div>
           </div>
         </div>
+      ) : (
+        <>
+          {/* Actions bar */}
+          <div style={{ background: '#fff', borderBottom: '1px solid var(--line)', padding: '10px 14px', display: 'flex', gap: 8, flexWrap: 'wrap', flexShrink: 0 }}>
+            {(diaryHtml || memoHtml || minitHtml) && (
+              <button className="btn" style={{ padding: '6px 12px', fontSize: 12 }} onClick={toggleEdit}>
+                {editing ? 'Selesai Edit' : 'Edit'}
+              </button>
+            )}
+            {diaryHtml && <button className="btn btn-primary" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => printFrame('diaryFrame')}>Cetak / PDF</button>}
+            {diaryHtml && <button className="btn" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => saveAsWord('diaryFrame', 'site-diary.doc')}>Word</button>}
+            {memoHtml && <button className="btn btn-primary" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => printFrame('memoFrame')}>Cetak / PDF</button>}
+            {memoHtml && <button className="btn" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => saveAsWord('memoFrame', 'memo.doc')}>Word</button>}
+            {minitHtml && <button className="btn btn-primary" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => printFrame('minitFrame')}>Cetak / PDF</button>}
+            {minitHtml && <button className="btn" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => saveAsWord('minitFrame', 'minit-mesyuarat.doc')}>Word</button>}
+            {(diaryHtml || memoHtml || minitHtml) && (
+              <button className="btn" style={{ padding: '6px 12px', fontSize: 12, marginLeft: 'auto', background: saveStatus === 'saved' ? '#ecfdf5' : saveStatus === 'error' ? '#fdecec' : '#fff', borderColor: saveStatus === 'saved' ? '#a7f3d0' : saveStatus === 'error' ? '#f6c9c9' : 'var(--line)', color: saveStatus === 'saved' ? '#1a6e3c' : saveStatus === 'error' ? '#b00020' : 'var(--ink)' }}
+                onClick={saveToSystem} disabled={saveStatus === 'saving'}>
+                {saveStatus === 'saving' ? 'Menyimpan…' : saveStatus === 'saved' ? 'Tersimpan!' : saveStatus === 'error' ? 'Gagal' : 'Simpan ke Sistem'}
+              </button>
+            )}
+          </div>
+          {/* Document iframe */}
+          <div style={{ flex: 1, overflow: 'auto' }}>
+            {diaryHtml && <iframe id="diaryFrame" title="diary" srcDoc={diaryHtml} style={{ width: '100%', height: 1400, border: 0, background: '#fff', display: 'block' }} />}
+            {memoHtml && <iframe id="memoFrame" title="memo" srcDoc={memoHtml} style={{ width: '100%', height: 1400, border: 0, background: '#fff', display: 'block' }} />}
+            {minitHtml && <iframe id="minitFrame" title="minit" srcDoc={minitHtml} style={{ width: '100%', height: 1400, border: 0, background: '#fff', display: 'block' }} />}
+            {output && <div className="output" style={{ margin: 14 }}>{output}</div>}
+          </div>
+        </>
       )}
+    </div>
+
     </div>
   );
 }
