@@ -1,4 +1,5 @@
 import { useMemo, useState, ChangeEvent, CSSProperties } from 'react';
+import { uploadDocumentHTML, saveArchivedDoc } from '../infrastructure/supabase/repositories';
 import { MEMO_TYPES } from '../domain/memoTypes';
 import { ProgrammeSnapshot } from '../domain/entities';
 import { buildPorts } from '../composition';
@@ -26,7 +27,7 @@ const sActions: CSSProperties = { display: 'flex', gap: 8, flexWrap: 'wrap', pad
 const sBody: CSSProperties = { overflow: 'auto', flex: 1, background: '#f2efe9' };
 const sX: CSSProperties = { border: 0, background: 'transparent', fontSize: 24, lineHeight: 1, cursor: 'pointer', color: '#6b6560', padding: '0 6px' };
 
-export function DocumentStudio({ projectId }: { projectId: string }) {
+export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () => void }) {
   const ports = useMemo(() => buildPorts(), []);
   const [kind, setKind] = useState<Kind>('diary');
   const [story, setStory] = useState('');
@@ -87,6 +88,7 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
     { peranan: 'Diluluskan oleh,', nama: '', jawatan: '' },
   ]);
   const [minitHtml, setMinitHtml] = useState('');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   const { tarikh, hari } = fromISO(tarikhISO);
   const selectedType = MEMO_TYPES.find((t) => t.id === memoType);
@@ -200,6 +202,34 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
     a.href = url; a.download = filename;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function saveToSystem() {
+    const frameId = diaryHtml ? 'diaryFrame' : memoHtml ? 'memoFrame' : minitHtml ? 'minitFrame' : '';
+    const activeHtml = diaryHtml || memoHtml || minitHtml;
+    const activeKind = diaryHtml ? 'diary' : memoHtml ? 'memo' : 'minit';
+    if (!frameId || !activeHtml) return;
+    const f = document.getElementById(frameId) as HTMLIFrameElement | null;
+    const doc = f?.contentDocument;
+    const htmlContent = doc ? '<!doctype html>' + doc.documentElement.outerHTML : activeHtml;
+    setSaveStatus('saving');
+    try {
+      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      const path = `${activeKind}/${ts}.html`;
+      const publicUrl = await uploadDocumentHTML(htmlContent, path);
+      const title = activeKind === 'diary'
+        ? `Site Diary — ${tajukKerja} (${fromISO(tarikhISO).tarikh || ts.slice(0, 10)})`
+        : activeKind === 'memo'
+        ? `Memo — ${mTajuk || memoType} (${fromISO(mTarikhISO).tarikh || ts.slice(0, 10)})`
+        : `Minit — ${mmTitle || mmTajuk} (${mmTarikhISO || ts.slice(0, 10)})`;
+      await saveArchivedDoc({ title, kind: activeKind, html_path: path, public_url: publicUrl, project_name: tajukKerja || projek || mmTajuk });
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 4000);
+    }
   }
 
   return (
@@ -402,6 +432,16 @@ export function DocumentStudio({ projectId }: { projectId: string }) {
               {minitHtml && <button className="btn btn-primary" onClick={() => printFrame('minitFrame')}>Cetak / Simpan PDF</button>}
               {minitHtml && <button className="btn" onClick={() => saveAsWord('minitFrame', 'minit-mesyuarat.doc')}>Simpan ke Word</button>}
               {output && <button className="btn" onClick={() => navigator.clipboard?.writeText(output)}>Salin Teks</button>}
+              {(diaryHtml || memoHtml || minitHtml) && (
+                <button
+                  className="btn"
+                  onClick={saveToSystem}
+                  disabled={saveStatus === 'saving'}
+                  style={{ background: saveStatus === 'saved' ? '#ecfdf5' : saveStatus === 'error' ? '#fdecec' : '#fff', borderColor: saveStatus === 'saved' ? '#a7f3d0' : saveStatus === 'error' ? '#f6c9c9' : 'var(--line)', color: saveStatus === 'saved' ? '#1a6e3c' : saveStatus === 'error' ? '#b00020' : 'var(--ink)' }}
+                >
+                  {saveStatus === 'saving' ? '⏳ Menyimpan…' : saveStatus === 'saved' ? '✓ Tersimpan!' : saveStatus === 'error' ? '✗ Gagal' : '💾 Simpan ke Sistem'}
+                </button>
+              )}
             </div>
             <div style={sBody}>
               {diaryHtml && <iframe id="diaryFrame" title="diary" srcDoc={diaryHtml} style={{ width: '100%', height: 1400, border: 0, background: '#fff' }} />}
