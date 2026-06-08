@@ -176,13 +176,13 @@ export function MeetingScheduler() {
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{m.title}</div>
                 <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6 }}>
-                  🕐 {fmtDateTime(m.start_time)}
+                  {fmtDateTime(m.start_time)}
                   {m.end_time && ` — ${fmtDateTime(m.end_time)}`}
                 </div>
                 {m.description && <div style={{ fontSize: 12.5, marginBottom: 6 }}>{m.description}</div>}
                 {m.attendees && m.attendees.length > 0 && (
                   <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>
-                    👥 {m.attendees.join(', ')}
+                    Peserta: {m.attendees.join(', ')}
                   </div>
                 )}
               </div>
@@ -227,12 +227,12 @@ export function MeetingScheduler() {
                 <textarea style={{ minHeight: 80 }} value={form.attendeesRaw} onChange={(e) => setForm((p) => ({ ...p, attendeesRaw: e.target.value }))} placeholder="hadirah@utm.my&#10;kontraktor@email.com" />
               </div>
               <div style={{ background: '#f0f4ff', border: '1px solid #c7d4f8', borderRadius: 9, padding: '10px 12px', fontSize: 12, marginBottom: 12 }}>
-                🗓️ Google Meet link akan dicipta secara automatik dan jemputan dihantar kepada semua peserta (jika token Google aktif).
+                Google Meet link akan dicipta secara automatik dan jemputan dihantar kepada semua peserta (jika token Google aktif).
               </div>
               {error && <div className="err" style={{ marginBottom: 12 }}>{error}</div>}
               <div className="btn-row" style={{ paddingBottom: 8 }}>
                 <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-                  {saving ? 'Mencipta mesyuarat…' : '📅 Jadual & Cipta Meet Link'}
+                  {saving ? 'Mencipta mesyuarat…' : 'Jadual & Cipta Meet Link'}
                 </button>
                 <button className="btn" onClick={() => setShowForm(false)}>Batal</button>
               </div>

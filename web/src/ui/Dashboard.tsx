@@ -20,6 +20,7 @@ const STATUS_LABEL: Record<string, string> = {
   active: 'AKTIF',
   issued: 'CMGD DIKELUARKAN',
 };
+const KIND_LABEL: Record<string, string> = { diary: 'Site Diary', memo: 'Memo', minit: 'Minit' };
 
 function daysUntil(dateStr: string) {
   const d = Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86_400_000);
@@ -85,7 +86,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: 'cmgd' | 'meetings' 
       </div>
 
       {/* CMGD Alerts */}
-      <Section title="🔔 Peringatan CMGD" action="Lihat semua CMGD" onAction={() => onNavigate('cmgd')}>
+      <Section title="Peringatan CMGD" action="Lihat semua CMGD" onAction={() => onNavigate('cmgd')}>
         {loading ? (
           <Skeleton />
         ) : alertCmgds.length === 0 ? (
@@ -115,20 +116,19 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: 'cmgd' | 'meetings' 
       </Section>
 
       {/* Upcoming meetings */}
-      <Section title="📅 Mesyuarat Akan Datang" action="Lihat semua" onAction={() => onNavigate('meetings')}>
+      <Section title="Mesyuarat Akan Datang" action="Lihat semua" onAction={() => onNavigate('meetings')}>
         {loading ? <Skeleton /> : upcoming.length === 0 ? (
           <Empty text="Tiada mesyuarat dijadualkan." />
         ) : (
           upcoming.map((m) => (
             <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1px solid var(--line)', borderRadius: 10, padding: '12px 14px', marginBottom: 8 }}>
-              <div style={{ width: 40, height: 40, background: 'rgba(122,12,46,.08)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>📅</div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700, fontSize: 14 }}>{m.title}</div>
                 <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{fmtDateTime(m.start_time)}</div>
               </div>
               {m.meet_link && (
                 <a href={m.meet_link} target="_blank" rel="noreferrer" style={{ background: '#1a73e8', color: '#fff', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>
-                  Join Meet
+                  Sertai Meet
                 </a>
               )}
             </div>
@@ -137,13 +137,15 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: 'cmgd' | 'meetings' 
       </Section>
 
       {/* Recent documents */}
-      <Section title="📂 Dokumen Terkini" action="Lihat arkib" onAction={() => onNavigate('library')}>
+      <Section title="Dokumen Terkini" action="Lihat arkib" onAction={() => onNavigate('library')}>
         {loading ? <Skeleton /> : docs.length === 0 ? (
           <Empty text="Tiada dokumen tersimpan. Jana dokumen dan simpan ke sistem." />
         ) : (
           docs.slice(0, 5).map((d) => (
             <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#fff', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px', marginBottom: 8 }}>
-              <span style={{ fontSize: 22, flexShrink: 0 }}>{d.kind === 'diary' ? '📓' : d.kind === 'memo' ? '📄' : '📋'}</span>
+              <div style={{ width: 36, height: 36, background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--maroon)', letterSpacing: '.03em' }}>{KIND_LABEL[d.kind] ?? d.kind}</span>
+              </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: 13 }}>{d.title}</div>
                 <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 1 }}>{d.project_name} · {d.created_at ? fmtDate(d.created_at.slice(0, 10)) : ''}</div>
@@ -169,7 +171,7 @@ function Section({ title, action, onAction, children }: { title: string; action:
     <div style={{ marginBottom: 28 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: 14, margin: 0, color: 'var(--ink)' }}>{title}</h3>
-        <button onClick={onAction} style={{ background: 'none', borderTop: 'none', borderRight: 'none', borderBottom: 'none', borderLeft: 'none', color: 'var(--maroon)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>{action} →</button>
+        <button onClick={onAction} style={{ background: 'none', borderTop: 'none', borderRight: 'none', borderBottom: 'none', borderLeft: 'none', color: 'var(--maroon)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>{action} &rarr;</button>
       </div>
       {children}
     </div>

@@ -215,14 +215,14 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
     setSaveStatus('saving');
     try {
       const ts = new Date().toISOString().replace(/[:.]/g, '-');
-      const path = `${activeKind}/${ts}.html`;
-      const publicUrl = await uploadDocumentHTML(htmlContent, path);
+      const pathSuffix = `${activeKind}/${ts}.html`;
+      const { publicUrl, fullPath } = await uploadDocumentHTML(htmlContent, pathSuffix);
       const title = activeKind === 'diary'
         ? `Site Diary — ${tajukKerja} (${fromISO(tarikhISO).tarikh || ts.slice(0, 10)})`
         : activeKind === 'memo'
         ? `Memo — ${mTajuk || memoType} (${fromISO(mTarikhISO).tarikh || ts.slice(0, 10)})`
         : `Minit — ${mmTitle || mmTajuk} (${mmTarikhISO || ts.slice(0, 10)})`;
-      await saveArchivedDoc({ title, kind: activeKind, html_path: path, public_url: publicUrl, project_name: tajukKerja || projek || mmTajuk });
+      await saveArchivedDoc({ title, kind: activeKind, html_path: fullPath, public_url: publicUrl, project_name: tajukKerja || projek || mmTajuk });
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (err) {
@@ -439,7 +439,7 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
                   disabled={saveStatus === 'saving'}
                   style={{ background: saveStatus === 'saved' ? '#ecfdf5' : saveStatus === 'error' ? '#fdecec' : '#fff', borderColor: saveStatus === 'saved' ? '#a7f3d0' : saveStatus === 'error' ? '#f6c9c9' : 'var(--line)', color: saveStatus === 'saved' ? '#1a6e3c' : saveStatus === 'error' ? '#b00020' : 'var(--ink)' }}
                 >
-                  {saveStatus === 'saving' ? '⏳ Menyimpan…' : saveStatus === 'saved' ? '✓ Tersimpan!' : saveStatus === 'error' ? '✗ Gagal' : '💾 Simpan ke Sistem'}
+                  {saveStatus === 'saving' ? 'Menyimpan…' : saveStatus === 'saved' ? 'Tersimpan!' : saveStatus === 'error' ? 'Gagal' : 'Simpan ke Sistem'}
                 </button>
               )}
             </div>

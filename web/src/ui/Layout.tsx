@@ -3,13 +3,13 @@ import { useAuth } from './AuthProvider';
 
 export type Page = 'dashboard' | 'studio' | 'library' | 'cmgd' | 'meetings';
 
-interface NavItem { id: Page; label: string; emoji: string }
+interface NavItem { id: Page; label: string; short: string }
 const NAV: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', emoji: '🏠' },
-  { id: 'studio', label: 'Jana Dokumen', emoji: '✏️' },
-  { id: 'library', label: 'Arkib Dokumen', emoji: '📂' },
-  { id: 'cmgd', label: 'CMGD', emoji: '✅' },
-  { id: 'meetings', label: 'Mesyuarat', emoji: '📅' },
+  { id: 'dashboard', label: 'Dashboard',     short: 'DB' },
+  { id: 'studio',    label: 'Jana Dokumen',  short: 'JD' },
+  { id: 'library',   label: 'Arkib Dokumen', short: 'AD' },
+  { id: 'cmgd',      label: 'CMGD',          short: 'CG' },
+  { id: 'meetings',  label: 'Mesyuarat',     short: 'MS' },
 ];
 
 export function Layout({ page, onNavigate, children }: { page: Page; onNavigate: (p: Page) => void; children: ReactNode }) {
@@ -80,8 +80,10 @@ export function Layout({ page, onNavigate, children }: { page: Page; onNavigate:
                   transition: 'background .12s',
                 }}
               >
-                <span style={{ fontSize: 16, flexShrink: 0 }}>{n.emoji}</span>
-                {!collapsed && <span>{n.label}</span>}
+                {collapsed
+                  ? <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.03em' }}>{n.short}</span>
+                  : <span>{n.label}</span>
+                }
               </button>
             ))}
           </nav>

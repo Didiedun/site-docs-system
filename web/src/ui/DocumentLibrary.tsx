@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { listArchivedDocs, deleteArchivedDoc, type ArchivedDoc } from '../infrastructure/supabase/repositories';
 
-const KIND_EMOJI: Record<string, string> = { diary: '📓', memo: '📄', minit: '📋' };
 const KIND_LABEL: Record<string, string> = { diary: 'Site Diary', memo: 'Memo', minit: 'Minit Mesyuarat' };
 
 const BULAN = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogs', 'Sep', 'Okt', 'Nov', 'Dis'];
@@ -79,7 +78,9 @@ export function DocumentLibrary({ onCreateNew }: { onCreateNew: () => void }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {filtered.map((d) => (
             <div key={d.id} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 12, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
-              <span style={{ fontSize: 28, flexShrink: 0 }}>{KIND_EMOJI[d.kind] ?? '📄'}</span>
+              <div style={{ width: 40, height: 40, background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--maroon)', letterSpacing: '.02em', textAlign: 'center', lineHeight: 1.2 }}>{(KIND_LABEL[d.kind] ?? d.kind).split(' ').map(w => w[0]).join('')}</span>
+              </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 2 }}>{d.title}</div>
                 <div style={{ fontSize: 12, color: 'var(--muted)' }}>
