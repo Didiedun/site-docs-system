@@ -53,7 +53,7 @@ _DIARY_BASE = """Anda menyusun Laporan Harian Tapak Bina UTM daripada nota menta
 - tenaga: objek dengan kunci senarai, iaitu senarai pasangan [peranan atau tred cth Tukang Siling (P07), bilangan]
 - perlaksanaan: senarai objek dengan kunci masa (Pagi atau Petang), butiran (senarai ayat kerja yang DIHURAIKAN), kuantiti, kualiti
 - bahan: senarai pasangan [nama bahan atau penghantaran, bil dibekal]
-- pengurusan: objek dengan kunci keselamatan, kebersihan, papan tanda, pakaian kerja, waktu kerja bernilai true atau false
+- pengurusan: objek dengan kunci keselamatan, kebersihan, papan tanda, pakaian kerja bernilai true atau false
 - catatan: senarai catatan penyelia
 - arahan: senarai arahan kepada kontraktor
 - penyelarasan: string penyelarasan bersama pelanggan

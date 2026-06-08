@@ -41,6 +41,8 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
   const [tajukKerja, setTajukKerja] = useState('Bumbung Akademik - Pakej 2');
   const [bil, setBil] = useState('');
   const [tarikhISO, setTarikhISO] = useState('');
+  const [waktuMula, setWaktuMula] = useState('08:00');
+  const [waktuTamat, setWaktuTamat] = useState('17:30');
   const [diaryHtml, setDiaryHtml] = useState('');
 
   // memo header (all user-entered — never generated)
@@ -158,7 +160,7 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
         });
         setMinitHtml(html);
       } else {
-        const { html } = await generateSiteDiary(ports, { projectId, notes, header: { tajuk: tajukKerja, bil, tarikh, hari }, lb: lbPayload(), snapshot: snapshot ?? undefined });
+        const { html } = await generateSiteDiary(ports, { projectId, notes, header: { tajuk: tajukKerja, bil, tarikh, hari, waktuMula, waktuTamat }, lb: lbPayload(), snapshot: snapshot ?? undefined });
         setDiaryHtml(html);
       }
       setShowDoc(true);
@@ -282,6 +284,13 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
           </div>
           <div className="field"><label>Bil (No. laporan)</label>
             <input value={bil} onChange={(e) => setBil(e.target.value)} /></div>
+          <Sec>Pengurusan Tapak</Sec>
+          <div className="grid2">
+            <div className="field"><label>Waktu Mula Bekerja</label>
+              <input type="time" value={waktuMula} onChange={(e) => setWaktuMula(e.target.value)} /></div>
+            <div className="field"><label>Waktu Tamat Bekerja</label>
+              <input type="time" value={waktuTamat} onChange={(e) => setWaktuTamat(e.target.value)} /></div>
+          </div>
         </>
       )}
 

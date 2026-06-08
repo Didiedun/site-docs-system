@@ -87,7 +87,7 @@ export function renderDiary(d: Dict): string {
         <div class="c" style="flex:1"><div class="lbl">*PENGURUSAN TAPAK</div>
           <div class="frow">keselamatan ${ck(peng['keselamatan'])} &nbsp; kebersihan ${ck(peng['kebersihan'])}</div>
           <div class="frow">papan tanda ${ck(peng['papan tanda'])} &nbsp; pakaian kerja ${ck(peng['pakaian kerja'])}</div>
-          <div class="frow">waktu kerja ${ck(peng['waktu kerja'])}</div></div>
+          <div class="frow">waktu kerja : <span class="bx" style="min-width:40px">${esc(d.waktuMula || '')}</span> &ndash; <span class="bx" style="min-width:40px">${esc(d.waktuTamat || '')}</span></div></div>
       </div>
     </div>
     <div class="cols" style="grid-template-columns:3fr 3fr 4fr">
@@ -96,6 +96,7 @@ export function renderDiary(d: Dict): string {
       <div class="c" style="padding:0"><div class="lbl" style="padding:3px 0">UJIAN DI TAPAK <span style="font-weight:400;font-size:7px">(sekiranya ada/perlu)</span></div>
         <div class="cols" style="grid-template-columns:1fr 70px"><div class="c">keterangan ujian<br>${esc((d.ujian || {}).keterangan)}</div><div class="c">keputusan<br>${esc((d.ujian || {}).keputusan)}</div></div></div>
     </div>
+    <div style="display:flex;flex-direction:column;gap:1px;background:var(--ink);page-break-inside:avoid;break-inside:avoid">
     <div class="cols" style="grid-template-columns:3fr 2fr">
       <div class="c" style="padding:0"><div class="lbl" style="padding:3px 0">PENYELARASAN BERSAMA PELANGGAN <span style="font-weight:400;font-size:7px">(sekiranya ada/perlu)</span></div><div class="box">${esc(d.penyelarasan)}</div></div>
       <div class="c" style="padding:0"><div class="lbl" style="padding:3px 0">**STATUS KERJA</div>
@@ -109,6 +110,7 @@ export function renderDiary(d: Dict): string {
       </div>
       <div class="c" style="padding:0"><div class="lbl" style="padding:3px 0">**KOMEN / ULASAN MINGGUAN <span style="font-weight:400;font-size:7px">(Pegawai Yang Bertanggungjawab)</span></div>
         <div class="box" style="min-height:30px">${esc(d.komen)}</div><div class="ttd">Tandatangan</div></div>
+    </div>
     </div>
   </div></div>
   <div class="foot">* tandakan [ &#10003; ] ~ patuh ; [ X ] ~ tidak patuh ; ** pengisian secara mingguan oleh Pegawai Yang Bertanggungjawab</div>

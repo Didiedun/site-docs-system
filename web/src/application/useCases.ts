@@ -86,7 +86,7 @@ export async function generateSiteDiary(
   args: {
     projectId: string;
     notes: Record<string, unknown>;
-    header?: { tajuk?: string; bil?: string; tarikh?: string; hari?: string };
+    header?: { tajuk?: string; bil?: string; tarikh?: string; hari?: string; waktuMula?: string; waktuTamat?: string };
     lb?: { entries: { catatan: string; photos: { name: string; dataUrl: string }[] }[]; disiplin?: string; tajukLajur?: string };
     snapshot?: ProgrammeSnapshot;
   },
@@ -102,6 +102,8 @@ export async function generateSiteDiary(
   if (args.header?.bil) data.bil = args.header.bil;
   if (args.header?.tarikh) data.tarikh = args.header.tarikh;
   if (args.header?.hari) data.hari = args.header.hari;
+  if (args.header?.waktuMula) data.waktuMula = args.header.waktuMula;
+  if (args.header?.waktuTamat) data.waktuTamat = args.header.waktuTamat;
   if (args.snapshot) {
     data.status = {
       rancang: String(args.snapshot.overall.plan ?? ''),
