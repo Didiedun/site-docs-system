@@ -32,7 +32,7 @@ const DIARY_CSS = `
   :root{--ink:#1f1f1f;--fs:8.7px}
   *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact} body{font-family:Arial,Helvetica,sans-serif;color:var(--ink);margin:0;font-size:var(--fs);line-height:1.35}
   .page{width:210mm;margin:0 auto;padding:7mm;background:#fff;min-height:297mm;display:flex;flex-direction:column}
-  .page+.page{margin-top:16px;border-top:3px dashed #bbb}
+  .page+.page{margin-top:28px;padding-top:14px;border-top:3px solid #7a0c2e}
   .frame{border:1.2px solid var(--ink);background:var(--ink);flex:1;display:flex;flex-direction:column;min-height:0}
   .stack{display:flex;flex-direction:column;gap:1px;background:var(--ink);flex:1;min-height:0}
   .cols{display:grid;gap:1px;background:var(--ink)}
@@ -85,8 +85,8 @@ export function renderDiary(d: Dict): string {
   if (naturalSplit) {
     // AI generated distinct Pagi + Petang entries — use them directly
     pagiRows = naturalPagi; petangRows = naturalPetang; hasBoth = true;
-  } else if (allPerlak.length >= 5) {
-    // All same-session but many rows — split in half for clean printing
+  } else if (allPerlak.length >= 2) {
+    // All same-session — split in half so pagi/petang always land on separate pages
     const mid = Math.ceil(allPerlak.length / 2);
     pagiRows = allPerlak.slice(0, mid); petangRows = allPerlak.slice(mid); hasBoth = true;
   } else {
@@ -113,7 +113,10 @@ export function renderDiary(d: Dict): string {
     const penye = isSecondPage ? '' : d.penyelarasan;
     const komen = isSecondPage ? '' : d.komen;
 
-    return `<div class="page">
+    const pageStyle = isSecondPage
+      ? ' style="page-break-before:always;break-before:page;margin-top:0"'
+      : '';
+    return `<div class="page"${pageStyle}>
   <div class="head"><img src="${logo}" alt="UTM"><div class="dept">Jabatan Timbalan Naib<br>Canselor (Pembangunan)</div><div class="ref">B-BPA/SP/LHTB<br>Pin. /2024</div></div>
   <div class="frame"><div class="stack">
     <div class="cols" style="grid-template-columns:auto 1fr"><div class="c" style="font-weight:700;white-space:nowrap">TAJUK KERJA :</div><div class="c" style="font-weight:700">${esc(d.tajuk)}</div></div>
