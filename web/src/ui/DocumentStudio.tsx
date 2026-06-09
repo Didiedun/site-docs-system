@@ -177,23 +177,34 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
     setEditing(false);
 
     const html = doc ? '<!doctype html>' + doc.documentElement.outerHTML : '';
-    // Open a real window so every browser (desktop + mobile) gets a print dialog
-    const pw = window.open('', '_blank', 'width=900,height=700');
-    if (!pw) {
-      // Popup blocked — download the HTML file as fallback
-      const blob = new Blob([html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'dokumen.html';
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+    // Primary: open blank window + document.write (works on Chrome/Firefox/Safari desktop+mobile)
+    // No size hints — mobile browsers ignore them and some treat them as popup signals to block
+    const pw = window.open('', '_blank');
+    if (pw) {
+      try {
+        pw.document.open();
+        pw.document.write(html);
+        pw.document.close();
+        // Give fonts/images a moment then trigger print dialog
+        setTimeout(() => { try { pw.focus(); pw.print(); } catch (_) {} }, 600);
+      } catch (_) {
+        // document.write blocked (Arc, strict CSP browsers) — navigate to blob URL instead
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        pw.location.href = url;
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      }
       return;
     }
-    pw.document.open();
-    pw.document.write(html);
-    pw.document.close();
-    // Give fonts/images a moment to load before triggering print
-    setTimeout(() => { pw.focus(); pw.print(); }, 400);
+
+    // window.open blocked (popup blocker) — open blob URL via link click
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
   // Export the document (including any inline edits) as a .doc that Word /

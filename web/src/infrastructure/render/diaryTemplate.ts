@@ -62,7 +62,7 @@ const DIARY_CSS = `
   .sig{height:42px} .ttd{text-align:right;padding:0 6px 3px}
   .foot{font-size:7.5px;font-style:italic;padding:3px 2px}
   .lbwrap{padding:7mm}
-  @media print{@page{size:A4;margin:5mm}.page{width:auto;margin:0;padding:5mm;min-height:277mm}.page+.page{margin-top:0;border-top:none;page-break-before:always}.lbwrap{padding:0}}
+  @media print{@page{size:A4;margin:0}body{margin:0}.page{width:auto;margin:0;padding:12mm 10mm;min-height:297mm}.page+.page{margin-top:0;border-top:none;page-break-before:always;break-before:page}.lbwrap{padding:10mm 8mm}}
 `;
 
 export function renderDiary(d: Dict): string {
@@ -176,7 +176,7 @@ export function renderDiary(d: Dict): string {
   const page1 = buildPage(hasBoth ? pagiRows : allPerlak, hasBoth ? 'SESI PAGI' : '', false);
   const page2 = hasBoth ? buildPage(petangRows, 'SESI PETANG', true) : '';
 
-  return `<!doctype html><html lang="ms"><head><meta charset="utf-8"><style>${DIARY_CSS}${LB_CSS}</style></head><body>
+  return `<!doctype html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=794"><title></title><style>${DIARY_CSS}${LB_CSS}</style></head><body>
   ${page1}
   ${page2}
   ${lbHtml ? `<div class="lbwrap">${lbHtml}</div>` : ''}
