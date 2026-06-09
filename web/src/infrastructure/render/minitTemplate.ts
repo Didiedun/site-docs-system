@@ -100,7 +100,8 @@ export function renderMinit(d: MinitData): string {
         ${sigs.length > 2 ? `<tr>${sigs.slice(2, 4).map(sigCell).join('')}</tr>` : ''}
       </table>` : '';
 
-  return `<!doctype html><html><head><meta charset="utf-8"><style>
+  return `<!doctype html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=794"><title></title><style>
+  @page{size:A4;margin:0}
   *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:0;font-size:12.5px;line-height:1.5}
   .page,.sheet2{width:210mm;margin:0 auto;padding:13mm;background:#fff;min-height:297mm}
@@ -153,7 +154,7 @@ export function renderMinit(d: MinitData): string {
   .sigspace{height:50px}
   .signame{font-weight:700;margin-top:3px}
   .sigtar{margin-top:12px}
-  @media print{@page{size:A4;margin:11mm}.page,.sheet2{width:auto;margin:0;padding:0;min-height:0}.body tr{page-break-inside:avoid}.sigtable{page-break-inside:avoid}}
+  @media print{.page,.sheet2{width:auto;margin:0;padding:11mm;min-height:0}.body tr{page-break-inside:avoid}.sigtable{page-break-inside:avoid}}
   </style></head><body>
   <div class="page">
     <table class="hdrtbl"><tr><td class="hlogo"><img src="${logoSrc}" alt="UTM"></td><td class="htitle">${esc(title)}</td></tr></table>

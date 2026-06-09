@@ -67,7 +67,8 @@ export function renderDiary(d: Dict): string {
   .sig{height:42px} .ttd{text-align:right;padding:0 6px 3px}
   .foot{font-size:7.5px;font-style:italic;padding:3px 2px}
   .lbwrap{padding:7mm}
-  @media print{@page{size:A4;margin:0}body{margin:0}.page{width:auto;margin:0;padding:12mm 10mm;min-height:297mm}.perlak-row{flex:none}.plgrow{max-height:92mm;overflow:hidden}.lbwrap{padding:10mm 8mm}}
+  @page{size:A4;margin:0}
+  @media print{body{margin:0}.page{width:auto;margin:0;padding:12mm 10mm;min-height:297mm}.perlak-row{flex:none}.lbwrap{padding:10mm 8mm}}
   ${LB_CSS}
   </style></head><body><div class="page">
   <div class="head"><img src="${logo}" alt="UTM"><div class="dept">Jabatan Timbalan Naib<br>Canselor (Pembangunan)</div><div class="ref">B-BPA/SP/LHTB<br>Pin. /2024</div></div>

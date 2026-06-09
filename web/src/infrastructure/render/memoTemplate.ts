@@ -38,7 +38,8 @@ export function renderMemo(d: Dict): string {
   const sk = `<div class="sk"><div class="skh">s.k.</div><div class="skb">${br(d.sk || '')}</div></div>`;
   const photoPage = renderLaporanBergambar(d.photoEntries, { projek: d.projek, disiplin: d.lbDisiplin, tajukLajur: d.lbTajukLajur });
 
-  return `<!doctype html><html lang="ms"><head><meta charset="utf-8"><style>
+  return `<!doctype html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=794"><title></title><style>
+  @page{size:A4;margin:0}
   *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact} body{font-family:Arial,Helvetica,sans-serif;color:#1b1b1b;margin:0;font-size:11px;line-height:1.5}
   .page{width:210mm;margin:0 auto;padding:16mm 18mm;background:#fff}
   .top{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #1b1b1b;padding-bottom:8px}
@@ -61,7 +62,7 @@ export function renderMemo(d: Dict): string {
   .sigsp{height:46px} .signame{font-weight:700;margin:0} .sigrole{margin:0;font-size:10.5px;line-height:1.4}
   .sk{display:grid;grid-template-columns:40px 1fr;margin-top:22px;font-size:10.5px} .skh{font-weight:400}
   ${LB_CSS}
-  @media print{@page{size:A4;margin:0}.page{width:auto;margin:0}}
+  @media print{.page{width:auto;margin:0}}
   </style></head><body><div class="page">
     <div class="top">
       <div class="lhs"><img src="${logo}" alt="UTM"><div class="dept">Jabatan Timbalan Naib Canselor<br>(Pembangunan)</div></div>
