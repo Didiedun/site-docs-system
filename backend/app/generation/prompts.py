@@ -12,10 +12,10 @@ Hasilkan SATU objek JSON SAHAJA (tiada teks atau pagar kod lain) dengan kunci:
    {"type":"subhead","text":"..."}  tajuk kecil sebelum jadual (cth nama jadual)
    {"type":"table","title":"...","headers":["..."],"rows":[["..."]],"punca":["..."]}  (medan 'punca' OPSYENAL: senarai punca yang dikongsi SEMUA baris; sistem paparkan sebagai SATU lajur "Punca Kelewatan" digabung. JANGAN letak Punca dalam headers atau ulang ia setiap baris.)
 - penutup: senarai ayat penutup, cth ["Kerjasama dan tindakan segera dari pihak tuan adalah amat dihargai.","Sekian, terima kasih."]
-JANGAN masukkan perenggan pembuka 'Dengan segala hormatnya...' (sistem tambah sebagai perenggan 1). JANGAN reka No. Rujukan, tarikh, nama, kepala memo atau tandatangan. Jangan reka angka/fakta yang tiada dalam nota. Tulis semula nota sebagai ayat profesional, bukan salinan bulat-bulat.
-PENTING: Masukkan HANYA kandungan berdasarkan poin/fakta yang diberi. JANGAN tambah perenggan, jadual atau peratus yang tidak diminta. JANGAN sertakan peratus kemajuan / status % / jadual kemajuan melainkan data 'programme' diberikan ATAU nombor diberi dalam nota.
-GAYA: Huraikan setiap poin menjadi ayat yang lengkap, formal dan terperinci dalam gaya surat rasmi UTM — gunakan frasa penghubung, ayat penuh dan nada profesional. Untuk isi sel jadual dan setiap item dalam senarai 'punca', kekalkan RINGKAS dan padat (poin pendek, bukan perenggan panjang). Perincikan BAHASA sahaja; JANGAN menambah fakta, angka, tarikh, nama, lokasi, sebab atau dakwaan baharu yang tiada dalam nota.
-CONTOH (huraikan bahasa, bukan fakta) — Nota: "kontraktor lambat hantar bahan, kerja terbengkalai" menjadi Perenggan: "Pihak kami mendapati bahawa pihak kontraktor menghadapi kelewatan dalam penghantaran bahan binaan ke tapak, sekali gus menyebabkan kerja-kerja di tapak terbengkalai dan tidak dapat diteruskan mengikut jadual yang ditetapkan."""
+JANGAN masukkan perenggan pembuka 'Dengan segala hormatnya...' (sistem tambah sebagai perenggan 1). JANGAN reka No. Rujukan, tarikh, nama, kepala memo atau tandatangan.
+GAYA: Tulis semula setiap poin nota sebagai ayat penuh yang formal dan profesional (gaya surat rasmi UTM). Untuk isi sel jadual dan setiap item 'punca', kekalkan RINGKAS dan padat. Gunakan HANYA fakta yang ada dalam nota — jangan tambah angka, tarikh, nama, lokasi atau sebab yang tidak disebut.
+PERATUS: Sertakan peratus / jadual kemajuan HANYA jika data 'programme' diberikan atau angka disebut dalam nota. Jika tidak ada, jangan sebut langsung.
+CONTOH — Nota: "kontraktor lambat hantar bahan, kerja terbengkalai" → Para: "Pihak kami mendapati bahawa pihak kontraktor menghadapi kelewatan dalam penghantaran bahan binaan ke tapak, sekali gus menyebabkan kerja-kerja di tapak terbengkalai dan tidak dapat diteruskan mengikut jadual yang ditetapkan."""
 
 _MEMO_TYPE_GUIDE = {
     "kelewatan": """Jenis: Memo Kelewatan Kerja. Struktur: pembukaan; ringkasan kemajuan setakat cut-off dengan jadual keseluruhan (Rancang/Sebenar/Status) dan jadual mengikut blok dengan headers [Blok, Rancang, Sebenar, Status] DAN medan 'punca' (senarai punca utama yang SAMA bagi semua blok — sistem gabungkan sebagai satu lajur 'Punca Kelewatan'; JANGAN ulang punca setiap baris). Tulis setiap item 'punca' sebagai poin RINGKAS dan padat seperti dalam memo contoh (satu hingga dua ayat pendek sahaja setiap punca; BUKAN perenggan panjang dan BUKAN satu patah perkataan). Contoh gaya punca: (1) Bilangan pekerja di tapak semakin menurun; (2) Pengurusan gerak kerja di tapak lemah, tiada pemantauan teliti, dan kerja perlu dijalankan berulang kali; (3) Bahan binaan dan peralatan/jentera untuk melaksanakan kerja tidak mencukupi. Gunakan HANYA punca yang disebut dalam nota. Jadual blok dan punca disertakan HANYA jika data 'programme' diberikan; isu bahan/jentera; arahan sediakan Pelan Pemulihan dan amaran ambang ke arah penamatan kontrak.""",
@@ -38,20 +38,19 @@ _MINIT_BASE = """Anda menyusun BAHAGIAN ISI Minit Mesyuarat Tapak/Pemantauan UTM
        {"type":"para","text":"..."}  perenggan biasa tanpa label
        {"type":"table","headers":["..."],"rows":[["..."]]}  jadual (cth Rancang/Sebenar/Status)
 Struktur lazim: 2.0 Laporan Kemajuan & Status Kerja (status semasa, isu pekerja/jentera, tindakan diperlukan, dan status mengikut blok sebagai item+sub); 3.0 Rumusan Mesyuarat (Makluman); 4.0 Penutup. Bahagian 1.0 Pendahuluan ditambah secara automatik oleh sistem — JANGAN hasilkan 1.0; mulakan 'seksyen' dari 2.0.
-GAYA: Huraikan setiap poin menjadi ayat yang lengkap, formal dan profesional (gaya minit rasmi). Perincikan BAHASA sahaja; JANGAN menambah fakta, angka, tarikh, nama, lokasi atau keputusan baharu yang tiada dalam nota.
-KELENGKAPAN: Masukkan SEMUA poin, butiran dan blok daripada nota ke dalam bahagian yang sesuai — jangan tinggalkan atau ringkaskan sehingga maklumat hilang.
-PERATUS: Jika nota mengandungi angka kemajuan terkini (rancang/sebenar/lewat atau peratus), WAJIB masukkan sebagai blok {"type":"table","headers":["Perkara","Rancang","Sebenar","Status"],"rows":[["Kemajuan kerja","<rancang>","<sebenar>","<lewat>"]]} di bawah subhead Status Kemajuan. JANGAN reka angka yang tiada dalam nota.
-JANGAN hasilkan kepala mesyuarat (tajuk projek, kontraktor, tarikh, tempat), senarai kehadiran, atau blok tandatangan — semua itu ditambah oleh sistem daripada borang. Fokus pada 'agenda' dan 'seksyen' sahaja.
-PENTING (jadual): Setiap jadual MESTI menjadi blok berasingan {"type":"table","headers":[...],"rows":[[...]]} di dalam 'isi'. JANGAN letak objek jadual di dalam 'text' atau di dalam 'sub' — 'sub' mesti senarai STRING sahaja.
-PENTING (sumber): Gunakan HANYA maklumat yang ADA dalam nota pengguna. JANGAN menyalin, meniru atau mencipta data, angka, tarikh atau baris jadual daripada contoh atau dokumen lain.
+GAYA: Tulis semula setiap poin nota sebagai ayat penuh yang formal dan profesional (gaya minit rasmi). Gunakan HANYA fakta yang ada dalam nota — jangan tambah angka, tarikh, nama, lokasi atau keputusan yang tidak disebut.
+KELENGKAPAN: Masukkan SEMUA poin, butiran dan blok daripada nota — jangan tinggalkan atau ringkaskan sehingga maklumat hilang.
+PERATUS: Jika nota mengandungi angka kemajuan (rancang/sebenar/lewat), WAJIB masukkan sebagai blok {"type":"table","headers":["Perkara","Rancang","Sebenar","Status"],"rows":[...]} di bawah subhead Status Kemajuan. Jika tiada angka, jangan sebut peratus langsung.
+JANGAN hasilkan kepala mesyuarat (tajuk projek, kontraktor, tarikh, tempat), senarai kehadiran, atau blok tandatangan — semua itu ditambah oleh sistem. Fokus pada 'agenda' dan 'seksyen' sahaja.
+PENTING (jadual): Setiap jadual MESTI menjadi blok berasingan {"type":"table",...} di dalam 'isi'. JANGAN letak objek jadual di dalam 'text' atau 'sub' — 'sub' mesti senarai STRING sahaja.
 Contoh ringkas output: {"agenda":["Status kemajuan kerja"],"seksyen":[{"no":"2.0","tajuk":"Laporan Kemajuan & Status Kerja","status":"Tindakan : Kontraktor","isi":[{"type":"item","label":"i.","text":"Status kemajuan setakat tarikh berkenaan adalah seperti berikut:"},{"type":"table","headers":["Perkara","Rancang","Sebenar","Status"],"rows":[["Kemajuan kerja","71%","28%","-42%"]]},{"type":"item","label":"a.","text":"P03","sub":["Baki kerja: siling luar dan kerja M&E belum siap."]}]}]}"""
 
-_DIARY_BASE = """Anda menyusun Laporan Harian Tapak Bina UTM daripada nota mentah penyelia. JANGAN salin nota bulat-bulat; HURAIKAN setiap aktiviti menjadi ayat kerja yang lengkap, formal dan deskriptif dalam gaya laporan tapak rasmi. Hasilkan SATU objek JSON SAHAJA (tiada teks atau pagar kod lain) dengan kunci berikut:
+_DIARY_BASE = """Anda menyusun Laporan Harian Tapak Bina UTM daripada nota mentah penyelia. Hasilkan SATU objek JSON SAHAJA (tiada teks atau pagar kod lain) dengan kunci berikut:
 - tajuk, tarikh, hari: string
 - skop: objek dengan kunci Senibina, Mekanikal, Elektrik, Awam, Lanskap bernilai true atau false (disiplin kerja hari itu)
 - cuaca: objek dengan kunci pagi dan petang, nilai cerah atau mendung atau hujan
 - tenaga: objek dengan kunci senarai, iaitu senarai pasangan [peranan atau tred cth Tukang Siling (P07), bilangan]
-- perlaksanaan: senarai objek dengan kunci masa (Pagi atau Petang), butiran (senarai ayat kerja yang DIHURAIKAN), kuantiti, kualiti
+- perlaksanaan: senarai objek dengan kunci masa (Pagi atau Petang), butiran (senarai ayat kerja), kuantiti, kualiti
 - bahan: senarai pasangan [nama bahan atau penghantaran, bil dibekal]
 - pengurusan: objek dengan kunci keselamatan, kebersihan, papan tanda, pakaian kerja bernilai true atau false
 - catatan: senarai catatan penyelia
@@ -59,8 +58,8 @@ _DIARY_BASE = """Anda menyusun Laporan Harian Tapak Bina UTM daripada nota menta
 - penyelarasan: string penyelarasan bersama pelanggan
 - ujian: objek dengan kunci keterangan dan keputusan
 - komen: string komen mingguan (biasanya kosong)
-GAYA BUTIRAN: Bagi SETIAP item dalam 'butiran' perlaksanaan, huraikan aktiviti menjadi satu ayat penuh yang formal dan deskriptif — nyatakan jenis kerja dan lokasi dengan jelas, dan gunakan frasa kerja yang sesuai (cth \"Kerja-kerja ... sedang dijalankan/diteruskan/dilaksanakan oleh pihak kontraktor di ...\"). Setiap butiran hendaklah satu ayat lengkap, bukan frasa pendek. Perincikan BAHASA sahaja — JANGAN tambah kuantiti, bahan, kaedah, peralatan, sebab atau lokasi yang TIADA dalam nota.
-CONTOH (huraikan bahasa, bukan fakta) — Nota: \"Kerja2 memasang Syiling di Aras 4, P02\" menjadi butiran: \"Kerja-kerja pemasangan siling sedang dijalankan oleh pihak kontraktor di Aras 4, Blok P02.\" Nota: \"Kerja2 flashing di rooftop, P03\" menjadi butiran: \"Kerja-kerja pemasangan flashing sedang dilaksanakan di kawasan rooftop (bumbung), Blok P03.\"
+GAYA BUTIRAN: Tulis semula setiap item nota dalam 'butiran' sebagai satu ayat penuh yang formal — nyatakan jenis kerja dan lokasi, gunakan frasa kerja yang sesuai (cth "Kerja-kerja ... sedang dijalankan/diteruskan/dilaksanakan oleh pihak kontraktor di ..."). Perluas frasa pendek menjadi ayat lengkap. Gunakan HANYA fakta yang ada dalam nota — jangan tambah kuantiti, bahan, kaedah, peralatan, sebab atau lokasi yang tidak disebut.
+CONTOH — Nota: "Kerja2 memasang Syiling di Aras 4, P02" → butiran: "Kerja-kerja pemasangan siling sedang dijalankan oleh pihak kontraktor di Aras 4, Blok P02." Nota: "Kerja2 flashing di rooftop, P03" → butiran: "Kerja-kerja pemasangan flashing sedang dilaksanakan di kawasan rooftop (bumbung), Blok P03."
 Untuk perkara yang tiada dalam nota, tinggalkan kosong atau false. Jangan reka data. Jangan hasilkan status atau peratus kemajuan."""
 
 
@@ -75,7 +74,7 @@ def build_prompt(doc_type: str, payload: Dict[str, Any]) -> Tuple[str, str]:
         prog_rule = (
             "Data programme (.mpp) DIBERIKAN dalam 'programme'. Anda boleh sertakan peratus/jadual kemajuan berdasarkan data 'programme' itu sahaja."
             if has_prog else
-            "TIADA data programme (.mpp) dan tiada peratus dalam nota. JANGAN sertakan sebarang peratus kemajuan, status %, atau jadual kemajuan. Tulis HANYA berdasarkan poin yang diberi."
+            "TIADA data programme (.mpp) dan tiada peratus dalam nota. JANGAN sertakan sebarang peratus kemajuan, status %, atau jadual kemajuan."
         )
         system = _MEMO_BASE + "\n" + guide + "\n" + prog_rule
         user = "Fakta untuk memo jenis " + mtype + ":\n" + memo_facts + "\n\nHasilkan JSON memo sekarang."

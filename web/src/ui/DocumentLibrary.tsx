@@ -136,7 +136,7 @@ export function DocumentLibrary({ onCreateNew }: { onCreateNew: () => void }) {
         </div>
       )}
 
-      {viewing && <DocViewerModal url={viewing.public_url} title={viewing.title} onClose={() => setViewing(null)} />}
+      {viewing && <DocViewerModal url={viewing.signed_url ?? viewing.public_url} title={viewing.title} onClose={() => setViewing(null)} />}
     </div>
   );
 }

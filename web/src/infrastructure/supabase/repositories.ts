@@ -146,7 +146,9 @@ export interface ArchivedDoc {
   kind: string;
   html_path: string;
   public_url: string;
+  signed_url?: string;                        // generated at read time, never stored in DB
   project_name?: string;
+  source_payload?: Record<string, unknown>;   // raw notes + key fields, stored for audit
   user_id?: string;
   created_at?: string;
 }
@@ -157,12 +159,27 @@ export async function listArchivedDocs(): Promise<ArchivedDoc[]> {
     .select('*')
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return (data as ArchivedDoc[]) ?? [];
+  const docs = (data as ArchivedDoc[]) ?? [];
+  if (!docs.length) return docs;
+
+  // Generate short-lived signed URLs (1 h) so the bucket can stay private
+  const { data: signed } = await supabase.storage
+    .from('documents')
+    .createSignedUrls(docs.map((d) => d.html_path), 3600);
+
+  if (signed) {
+    const urlMap = new Map(signed.map((s) => [s.path, s.signedUrl]));
+    return docs.map((d) => ({ ...d, signed_url: urlMap.get(d.html_path) ?? undefined }));
+  }
+  return docs;
 }
 
 export async function saveArchivedDoc(doc: ArchivedDoc): Promise<ArchivedDoc> {
   const userId = (await supabase.auth.getUser()).data.user?.id;
-  const payload = { ...doc, user_id: userId };
+  // signed_url is runtime-only — strip it before writing to DB
+  const { signed_url: _drop, ...rest } = doc;
+  void _drop;
+  const payload = { ...rest, user_id: userId };
   const { data, error } = await supabase.from('archived_docs').insert(payload).select().single();
   if (error) throw error;
   return data as ArchivedDoc;

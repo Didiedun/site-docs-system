@@ -244,7 +244,13 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
         : activeKind === 'memo'
         ? `Memo — ${mTajuk || memoType} (${fromISO(mTarikhISO).tarikh || ts.slice(0, 10)})`
         : `Minit — ${mmTitle || mmTajuk} (${mmTarikhISO || ts.slice(0, 10)})`;
-      await saveArchivedDoc({ title, kind: activeKind, html_path: fullPath, public_url: publicUrl, project_name: tajukKerja || projek || mmTajuk });
+      const sourcePayload: Record<string, unknown> =
+        activeKind === 'diary'
+          ? { notes: story, tajukKerja, bil, tarikhISO, waktuMula, waktuTamat }
+          : activeKind === 'memo'
+          ? { notes: story, memoType, mTajuk, kepada, daripada, projek, mTarikhISO }
+          : { notes: story, mmTitle, mmTajuk, mmTarikhISO };
+      await saveArchivedDoc({ title, kind: activeKind, html_path: fullPath, public_url: publicUrl, project_name: tajukKerja || projek || mmTajuk, source_payload: sourcePayload });
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (err) {
