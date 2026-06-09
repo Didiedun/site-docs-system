@@ -55,9 +55,9 @@ export function renderDiary(d: Dict): string {
   .bx{display:inline-block;min-width:28px;height:12px;border:1px solid var(--ink);vertical-align:middle;text-align:center;line-height:12px;padding:0 3px}
   .frow{display:flex;align-items:center;padding:2px 0}
   .trow{display:flex;align-items:center;gap:4px;padding:2px 0} .trow .nm{flex:1;border-bottom:1px dotted #999}
-  table.pl{border-collapse:collapse;width:100%;height:100%;background:#fff} table.pl td{border:1px solid var(--ink);padding:3px 4px;vertical-align:top;font-size:var(--fs)}
+  table.pl{border-collapse:collapse;width:100%;background:#fff} table.pl td{border:1px solid var(--ink);padding:3px 4px;vertical-align:top;font-size:var(--fs)}
   table.pl .ct{text-align:center;width:30px} table.pl thead td{background:#eee;font-weight:700;text-align:center}
-  .plcell{background:#fff;padding:0;display:flex;flex-direction:column} .plgrow{flex:1;display:flex}
+  .plcell{background:#fff;padding:0;display:flex;flex-direction:column} .plgrow{flex:1;display:flex;overflow-y:auto;min-height:80px}
   .wl{margin:0;padding-left:13px;line-height:1.4}
   .jrow{display:flex;align-items:center;gap:4px;padding:2px 0} .jrow .nm{width:58px}
   .jrow .g{flex:1;display:flex;align-items:center;gap:4px} .jrow .ln{flex:1;border-bottom:1px dotted #999;height:11px}
@@ -67,7 +67,7 @@ export function renderDiary(d: Dict): string {
   .sig{height:42px} .ttd{text-align:right;padding:0 6px 3px}
   .foot{font-size:7.5px;font-style:italic;padding:3px 2px}
   .lbwrap{padding:7mm}
-  @media print{@page{size:A4;margin:0}body{margin:0}.page{width:auto;margin:0;padding:12mm 10mm;min-height:297mm}.lbwrap{padding:10mm 8mm}}
+  @media print{@page{size:A4;margin:0}body{margin:0}.page{width:auto;margin:0;padding:12mm 10mm;min-height:297mm}.perlak-row{flex:none}.plgrow{max-height:92mm;overflow:hidden}.lbwrap{padding:10mm 8mm}}
   ${LB_CSS}
   </style></head><body><div class="page">
   <div class="head"><img src="${logo}" alt="UTM"><div class="dept">Jabatan Timbalan Naib<br>Canselor (Pembangunan)</div><div class="ref">B-BPA/SP/LHTB<br>Pin. /2024</div></div>
@@ -86,7 +86,7 @@ export function renderDiary(d: Dict): string {
       <div class="c"><div class="lbl">TENAGA KERJA <span style="float:right;font-weight:400;font-size:7px">bil</span></div>
         ${tenaga.map(([n, b]: [string, string]) => `<div class="trow"><span class="nm">${esc(n)}</span>${bx(b)}</div>`).join('')}</div>
     </div>
-    <div class="cols" style="grid-template-columns:3fr 2fr;flex:1">
+    <div class="cols perlak-row" style="grid-template-columns:3fr 2fr;flex:1">
       <div class="plcell"><div class="hdr">PERLAKSANAAN KERJA KONTRAKTOR DI TAPAK</div>
         <div class="plgrow"><table class="pl"><thead><tr><td>masa</td><td>butiran kerja kontraktor</td><td>kuantiti</td><td>*kualiti/spek.</td></tr></thead><tbody>${perlak}</tbody></table></div></div>
       <div class="stack">
@@ -122,7 +122,7 @@ export function renderDiary(d: Dict): string {
     </div>
     </div>
   </div></div>
-  <div class="foot">* tandakan [ &#10003; ] ~ patuh ; [ X ] ~ tidak patuh ; ** pengisian secara mingguan oleh Pegawai Yang Bertanggungjawab</div>
+  <div class="foot">tandakan [ ✓ ] ~ patuh ; [ X ] ~ tidak patuh ; ** pengisian secara mingguan oleh Pegawai Yang Bertanggungjawab</div>
   </div>
   ${lbHtml ? `<div class="lbwrap">${lbHtml}</div>` : ''}
   </body></html>`;
