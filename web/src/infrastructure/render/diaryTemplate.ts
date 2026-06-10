@@ -80,19 +80,19 @@ export function renderDiary(d: Dict): string {
       <div class="dh"><div class="r"><b>TARIKH</b> : ${esc(d.tarikh)}</div><div class="r"><b>HARI</b> : ${esc(d.hari)}</div></div>
       <div class="bil">BIL: ${esc(d.bil)}</div>
     </div>
-    <div class="cols" style="grid-template-columns:6fr 4fr">
-      <div style="background:#fff"><div class="cols" style="grid-template-columns:1fr 1fr;border-bottom:1px solid var(--ink)">
-        <div class="c"><div class="lbl">SKOP KERJA</div>${SKOP.map((s) => `<div class="frow">${ck(skop[s])}${s}</div>`).join('')}</div>
-        <div class="c"><div class="lbl">CUACA</div><div style="text-align:center;font-style:italic;font-size:7px">batalkan yang tidak berkenaan</div>
-          <div class="frow">${ck(false)}pagi : ${cuaca(cu.pagi)}</div><div class="frow">${ck(false)}petang : ${cuaca(cu.petang)}</div></div>
-      </div></div>
-      <div class="c"><div class="lbl">TENAGA KERJA <span style="float:right;font-weight:400;font-size:7px">bil</span></div>
-        ${tenaga.map(([n, b]: [string, string]) => `<div class="trow"><span class="nm">${esc(n)}</span>${bx(b)}</div>`).join('')}</div>
-    </div>
     <div class="cols perlak-row" style="grid-template-columns:3fr 2fr;flex:1">
-      <div class="plcell"><div class="hdr">PERLAKSANAAN KERJA KONTRAKTOR DI TAPAK</div>
-        <div class="plgrow"><table class="pl"><thead><tr><td>masa</td><td>butiran kerja kontraktor</td><td>kuantiti</td><td>*kualiti/spek.</td></tr></thead><tbody>${perlak}</tbody></table></div></div>
       <div class="stack">
+        <div class="cols" style="grid-template-columns:1fr 1fr">
+          <div class="c"><div class="lbl">SKOP KERJA</div>${SKOP.map((s) => `<div class="frow">${ck(skop[s])}${s}</div>`).join('')}</div>
+          <div class="c"><div class="lbl">CUACA</div><div style="text-align:center;font-style:italic;font-size:7px">batalkan yang tidak berkenaan</div>
+            <div class="frow">${ck(false)}pagi : ${cuaca(cu.pagi)}</div><div class="frow">${ck(false)}petang : ${cuaca(cu.petang)}</div></div>
+        </div>
+        <div class="plcell" style="flex:1"><div class="hdr">PERLAKSANAAN KERJA KONTRAKTOR DI TAPAK</div>
+          <div class="plgrow"><table class="pl"><thead><tr><td>masa</td><td>butiran kerja kontraktor</td><td>kuantiti</td><td>*kualiti/spek.</td></tr></thead><tbody>${perlak}</tbody></table></div></div>
+      </div>
+      <div class="stack">
+        <div class="c"><div class="lbl">TENAGA KERJA <span style="float:right;font-weight:400;font-size:7px">bil</span></div>
+          ${tenaga.map(([n, b]: [string, string]) => `<div class="trow"><span class="nm">${esc(n)}</span>${bx(b)}</div>`).join('')}</div>
         <div class="c"><div class="lbl">JENTERA / MESIN</div>
           ${JENTERA.map(([a, b]: [string, string]) => `<div class="jrow"><span class="nm">${a}</span>${bx(jv(a))}<span class="g">${b ? `${b} ${bx(jv(b))}` : `<span class="ln"></span>${bx('')}`}</span></div>`).join('')}</div>
         <div class="c"><div class="lbl">BAHAN BINAAN</div><table class="bh"><tr><td>bahan</td><td style="width:64px">bil dibekal</td></tr>${bahan.map(([a, b]: [string, string]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join('')}</table></div>
