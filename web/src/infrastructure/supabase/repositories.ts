@@ -198,6 +198,12 @@ export async function saveArchivedDoc(doc: ArchivedDoc): Promise<ArchivedDoc> {
   return data as ArchivedDoc;
 }
 
+export async function getSignedDocUrl(htmlPath: string): Promise<string | null> {
+  const { data, error } = await supabase.storage.from('documents').createSignedUrl(htmlPath, 3600);
+  if (error || !data?.signedUrl) return null;
+  return data.signedUrl;
+}
+
 export async function deleteArchivedDoc(id: string, htmlPath: string): Promise<void> {
   await supabase.storage.from('documents').remove([htmlPath]);
   const { error } = await supabase.from('archived_docs').delete().eq('id', id);

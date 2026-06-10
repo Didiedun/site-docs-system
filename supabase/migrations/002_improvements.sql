@@ -27,6 +27,8 @@ drop policy if exists "public_read" on storage.objects;
 
 -- Authenticated users can read their own files (needed for signed URL generation)
 -- Signed URLs bypass RLS, so this policy covers direct authenticated access only.
-create policy if not exists "authenticated_read" on storage.objects
+-- Note: CREATE POLICY has no IF NOT EXISTS; use DROP first to make this idempotent.
+drop policy if exists "authenticated_read" on storage.objects;
+create policy "authenticated_read" on storage.objects
   for select to authenticated
   using (bucket_id = 'documents' and auth.uid()::text = (storage.foldername(name))[1]);
