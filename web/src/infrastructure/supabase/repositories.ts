@@ -176,10 +176,23 @@ export async function listArchivedDocs(): Promise<ArchivedDoc[]> {
 
 export async function saveArchivedDoc(doc: ArchivedDoc): Promise<ArchivedDoc> {
   const userId = (await supabase.auth.getUser()).data.user?.id;
-  // signed_url is runtime-only — strip it before writing to DB
-  const { signed_url: _drop, ...rest } = doc;
-  void _drop;
-  const payload = { ...rest, user_id: userId };
+  const { signed_url: _s, source_payload, ...base } = doc;
+  void _s;
+  const payload = { ...base, user_id: userId };
+
+  // Try with source_payload (requires migration 002). If the column doesn't
+  // exist yet, fall back to saving without it so other accounts aren't blocked.
+  if (source_payload !== undefined) {
+    const { data, error } = await supabase
+      .from('archived_docs')
+      .insert({ ...payload, source_payload })
+      .select()
+      .single();
+    if (!error) return data as ArchivedDoc;
+    if (!error.message?.includes('source_payload')) throw error;
+    // column not yet added — fall through and save without it
+  }
+
   const { data, error } = await supabase.from('archived_docs').insert(payload).select().single();
   if (error) throw error;
   return data as ArchivedDoc;
