@@ -80,10 +80,12 @@ export function renderDiary(d: Dict): string {
       <div class="dh"><div class="r"><b>TARIKH</b> : ${esc(d.tarikh)}</div><div class="r"><b>HARI</b> : ${esc(d.hari)}</div></div>
       <div class="bil">BIL: ${esc(d.bil)}</div>
     </div>
-    <div class="cols" style="grid-template-columns:3fr 3fr 4fr">
-      <div class="c" style="display:flex;flex-direction:column"><div class="lbl">SKOP KERJA</div><div style="flex:1;display:flex;flex-direction:column;justify-content:space-around">${SKOP.map((s) => `<div class="frow">${ck(skop[s])}${s}</div>`).join('')}</div></div>
-      <div class="c" style="display:flex;flex-direction:column"><div class="lbl">CUACA</div><div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:3px"><div style="text-align:center;font-style:italic;font-size:7px">batalkan yang tidak berkenaan</div>
-        <div class="frow">${ck(false)}pagi : ${cuaca(cu.pagi)}</div><div class="frow">${ck(false)}petang : ${cuaca(cu.petang)}</div></div></div>
+    <div class="cols" style="grid-template-columns:6fr 4fr">
+      <div style="background:#fff"><div class="cols" style="grid-template-columns:1fr 1fr">
+        <div class="c"><div class="lbl">SKOP KERJA</div>${SKOP.map((s) => `<div class="frow">${ck(skop[s])}${s}</div>`).join('')}</div>
+        <div class="c"><div class="lbl">CUACA</div><div style="text-align:center;font-style:italic;font-size:7px">batalkan yang tidak berkenaan</div>
+          <div class="frow">${ck(false)}pagi : ${cuaca(cu.pagi)}</div><div class="frow">${ck(false)}petang : ${cuaca(cu.petang)}</div></div>
+      </div></div>
       <div class="c"><div class="lbl">TENAGA KERJA <span style="float:right;font-weight:400;font-size:7px">bil</span></div>
         ${tenaga.map(([n, b]: [string, string]) => `<div class="trow"><span class="nm">${esc(n)}</span>${bx(b)}</div>`).join('')}</div>
     </div>
