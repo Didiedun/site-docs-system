@@ -1,5 +1,5 @@
 import { useMemo, useState, ChangeEvent } from 'react';
-import { uploadDocumentFile, saveArchivedDoc } from '../infrastructure/supabase/repositories';
+import { uploadDocumentFile, saveArchivedDoc, SessionExpiredError } from '../infrastructure/supabase/repositories';
 
 import { MEMO_TYPES } from '../domain/memoTypes';
 import { ProgrammeSnapshot } from '../domain/entities';
@@ -254,7 +254,11 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(
+        err instanceof SessionExpiredError
+          ? 'Sesi tamat — sila log masuk semula untuk menyimpan dokumen ini.'
+          : err instanceof Error ? err.message : String(err),
+      );
       setSaveStatus('error');
       setTimeout(() => setSaveStatus('idle'), 4000);
     }

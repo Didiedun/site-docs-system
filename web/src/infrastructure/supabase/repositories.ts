@@ -9,6 +9,25 @@ export function makeSupabase(_url: string, _key: string): SupabaseClient {
   return supabase;
 }
 
+/** Thrown when the user's auth session is missing or expired (auth/v1/user
+ *  returns 403). Callers can show a "please log in again" message instead of a
+ *  cryptic Storage/RLS failure. */
+export class SessionExpiredError extends Error {
+  constructor(message = 'Sesi tamat — sila log masuk semula untuk menyimpan.') {
+    super(message);
+    this.name = 'SessionExpiredError';
+  }
+}
+
+/** Returns the current authenticated user id, or throws SessionExpiredError.
+ *  Replaces the previous silent `?? 'shared'` fallback that built an upload
+ *  path Storage RLS always rejects, surfacing as a confusing 400 on save. */
+async function requireUserId(): Promise<string> {
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) throw new SessionExpiredError();
+  return data.user.id;
+}
+
 export class SupabaseProjectRepository implements ProjectRepository {
   constructor(private db: SupabaseClient) {}
   async get(id: string): Promise<Project | null> {
@@ -175,7 +194,7 @@ export async function listArchivedDocs(): Promise<ArchivedDoc[]> {
 }
 
 export async function saveArchivedDoc(doc: ArchivedDoc): Promise<ArchivedDoc> {
-  const userId = (await supabase.auth.getUser()).data.user?.id;
+  const userId = await requireUserId();
   const { signed_url: _s, source_payload, ...base } = doc;
   void _s;
   const payload = { ...base, user_id: userId };
@@ -215,7 +234,7 @@ export async function uploadDocumentHTML(html: string, pathSuffix: string): Prom
 }
 
 export async function uploadDocumentFile(blob: Blob, pathSuffix: string, contentType: string): Promise<{ publicUrl: string; fullPath: string }> {
-  const userId = (await supabase.auth.getUser()).data.user?.id ?? 'shared';
+  const userId = await requireUserId();
   const fullPath = `${userId}/${pathSuffix}`;
   const { error } = await supabase.storage.from('documents').upload(fullPath, blob, { upsert: true, contentType });
   if (error) throw error;
