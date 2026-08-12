@@ -36,6 +36,8 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
   const [tarikhISO, setTarikhISO] = useState('');
   const [waktuMula, setWaktuMula] = useState('08:00');
   const [waktuTamat, setWaktuTamat] = useState('17:30');
+  const [cuacaPagi, setCuacaPagi] = useState('cerah');
+  const [cuacaPetang, setCuacaPetang] = useState('cerah');
   const [diaryHtml, setDiaryHtml] = useState('');
 
   // memo header (all user-entered — never generated)
@@ -152,7 +154,7 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
         });
         setMinitHtml(html);
       } else {
-        const { html } = await generateSiteDiary(ports, { projectId, notes, header: { tajuk: tajukKerja, bil, tarikh, hari, waktuMula, waktuTamat }, lb: lbPayload(), snapshot: snapshot ?? undefined });
+        const { html } = await generateSiteDiary(ports, { projectId, notes, header: { tajuk: tajukKerja, bil, tarikh, hari, waktuMula, waktuTamat, cuaca: { pagi: cuacaPagi, petang: cuacaPetang } }, lb: lbPayload(), snapshot: snapshot ?? undefined });
         setDiaryHtml(html);
       }
     } catch (err) { setError(err instanceof Error ? err.message : JSON.stringify(err)); }
@@ -246,7 +248,7 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
         : `Minit — ${mmTitle || mmTajuk} (${mmTarikhISO || ts.slice(0, 10)})`;
       const sourcePayload: Record<string, unknown> =
         activeKind === 'diary'
-          ? { notes: story, tajukKerja, bil, tarikhISO, waktuMula, waktuTamat }
+          ? { notes: story, tajukKerja, bil, tarikhISO, waktuMula, waktuTamat, cuacaPagi, cuacaPetang }
           : activeKind === 'memo'
           ? { notes: story, memoType, mTajuk, kepada, daripada, projek, mTarikhISO }
           : { notes: story, mmTitle, mmTajuk, mmTarikhISO };
@@ -322,6 +324,16 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
               <input type="time" value={waktuMula} onChange={(e) => setWaktuMula(e.target.value)} /></div>
             <div className="field"><label>Waktu Tamat Bekerja</label>
               <input type="time" value={waktuTamat} onChange={(e) => setWaktuTamat(e.target.value)} /></div>
+          </div>
+          <div className="grid2">
+            <div className="field"><label>Cuaca — Pagi</label>
+              <select value={cuacaPagi} onChange={(e) => setCuacaPagi(e.target.value)}>
+                <option value="cerah">Cerah</option><option value="mendung">Mendung</option><option value="hujan">Hujan</option>
+              </select></div>
+            <div className="field"><label>Cuaca — Petang</label>
+              <select value={cuacaPetang} onChange={(e) => setCuacaPetang(e.target.value)}>
+                <option value="cerah">Cerah</option><option value="mendung">Mendung</option><option value="hujan">Hujan</option>
+              </select></div>
           </div>
         </>
       )}

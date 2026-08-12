@@ -92,7 +92,8 @@ export function renderDiary(d: Dict): string {
       </div>
       <div class="stack">
         <div class="c"><div class="lbl">TENAGA KERJA <span style="float:right;font-weight:400;font-size:7px">bil</span></div>
-          ${tenaga.map(([n, b]: [string, string]) => `<div class="trow"><span class="nm">${esc(n)}</span>${bx(b)}</div>`).join('')}</div>
+          ${tenaga.map(([n, b]: [string, string]) => `<div class="trow"><span class="nm">${esc(n)}</span>${bx(b)}</div>`).join('')}
+          <div class="trow" style="font-weight:700"><span class="nm" style="border-bottom:none">JUMLAH</span>${bx(tenaga.reduce((t, [, b]) => t + (parseInt(String(b), 10) || 0), 0) || '')}</div></div>
         <div class="c"><div class="lbl">JENTERA / MESIN</div>
           ${JENTERA.map(([a, b]: [string, string]) => `<div class="jrow"><span class="nm">${a}</span>${bx(jv(a))}<span class="g">${b ? `${b} ${bx(jv(b))}` : `<span class="ln"></span>${bx('')}`}</span></div>`).join('')}</div>
         <div class="c"><div class="lbl">BAHAN BINAAN</div><table class="bh"><tr><td>bahan</td><td style="width:64px">bil dibekal</td></tr>${bahan.map(([a, b]: [string, string]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join('')}</table></div>
