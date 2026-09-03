@@ -1,5 +1,6 @@
-import { useMemo, useState, ChangeEvent } from 'react';
+import { useMemo, useState, useEffect, useRef, ChangeEvent } from 'react';
 import { uploadDocumentFile, saveArchivedDoc, SessionExpiredError } from '../infrastructure/supabase/repositories';
+import { loadDraft, saveDraft, clearDraft, isDraftMeaningful, DRAFT_VERSION, type DraftData } from './draftStore';
 
 import { MEMO_TYPES } from '../domain/memoTypes';
 import { ProgrammeSnapshot } from '../domain/entities';
@@ -91,6 +92,70 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
   const selectedType = MEMO_TYPES.find((t) => t.id === memoType);
   const needsProgramme = (kind === 'memo' && selectedType?.needsProgramme) || kind === 'diary';
   const hasDoc = !!(diaryHtml || memoHtml || minitHtml || output);
+
+  // ── Draft autosave & recovery (IndexedDB — holds photos, unlike localStorage) ──
+  const DRAFT_KEY = `studio:${projectId}`;
+  const [recovered, setRecovered] = useState<DraftData | null>(null);
+  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
+
+  const fieldsBag = () => ({
+    kind, tajukKerja, bil, tarikhISO, waktuMula, waktuTamat, cuacaPagi, cuacaPetang,
+    memoType, mBil, noRujukan, mTarikhISO, daripada, kepada, projek, mTajuk, tuan,
+    namaTtd, jawatanTtd, unitTtd, emelTtd, sk, lbDisiplin, lbTajukLajur,
+    mmTitle, mmTajuk, mmNamaKon, mmNoSeb, mmTMulaISO, mmTTamatISO, mmTarikhISO, mmMasa, mmTempat, mmBil,
+    chair, utmA, konA, sigs, snapshot,
+  });
+  const buildDraft = (): DraftData => ({
+    version: DRAFT_VERSION, savedAt: Date.now(),
+    story, diaryHtml, memoHtml, minitHtml, output, entries, fields: fieldsBag(),
+  });
+  function applyDraft(d: DraftData) {
+    const f = d.fields as Record<string, any>;
+    setKind(f.kind ?? 'diary'); setTajukKerja(f.tajukKerja ?? ''); setBil(f.bil ?? '');
+    setTarikhISO(f.tarikhISO ?? ''); setWaktuMula(f.waktuMula ?? '08:00'); setWaktuTamat(f.waktuTamat ?? '17:30');
+    setCuacaPagi(f.cuacaPagi ?? 'cerah'); setCuacaPetang(f.cuacaPetang ?? 'cerah');
+    setMemoType(f.memoType ?? MEMO_TYPES[0].id); setMBil(f.mBil ?? ''); setNoRujukan(f.noRujukan ?? '');
+    setMTarikhISO(f.mTarikhISO ?? ''); setDaripada(f.daripada ?? ''); setKepada(f.kepada ?? '');
+    setProjek(f.projek ?? ''); setMTajuk(f.mTajuk ?? ''); setTuan(f.tuan ?? true);
+    setNamaTtd(f.namaTtd ?? ''); setJawatanTtd(f.jawatanTtd ?? ''); setUnitTtd(f.unitTtd ?? UNIT_DEFAULT);
+    setEmelTtd(f.emelTtd ?? ''); setSk(f.sk ?? SK_DEFAULT);
+    setLbDisiplin(f.lbDisiplin ?? 'AWAM'); setLbTajukLajur(f.lbTajukLajur ?? 'Gambar keadaan di tapak');
+    setMmTitle(f.mmTitle ?? ''); setMmTajuk(f.mmTajuk ?? ''); setMmNamaKon(f.mmNamaKon ?? '');
+    setMmNoSeb(f.mmNoSeb ?? ''); setMmTMulaISO(f.mmTMulaISO ?? ''); setMmTTamatISO(f.mmTTamatISO ?? '');
+    setMmTarikhISO(f.mmTarikhISO ?? ''); setMmMasa(f.mmMasa ?? ''); setMmTempat(f.mmTempat ?? 'Bilik Mesyuarat, BPA');
+    setMmBil(f.mmBil ?? '');
+    setChair(f.chair ?? [{ nama: '', jawatan: 'Pengerusi Mesyuarat' }]);
+    setUtmA(f.utmA ?? [{ nama: '', jawatan: '', seksyen: 'Seksyen Pembangunan' }]);
+    setKonA(f.konA ?? [{ nama: '', jawatan: '' }]);
+    setSigs(f.sigs ?? []);
+    setSnapshot(f.snapshot ?? null);
+    setStory(d.story ?? ''); setEntries(d.entries ?? []);
+    setDiaryHtml(d.diaryHtml ?? ''); setMemoHtml(d.memoHtml ?? ''); setMinitHtml(d.minitHtml ?? ''); setOutput(d.output ?? '');
+  }
+  function restoreDraft() { if (recovered) applyDraft(recovered); setRecovered(null); }
+  function discardDraft() { clearDraft(DRAFT_KEY).catch(() => {}); setRecovered(null); setDraftSavedAt(null); }
+
+  // Snapshot the pristine defaults once so autosave only fires on real edits.
+  const pristineRef = useRef<string>();
+  if (pristineRef.current === undefined) pristineRef.current = JSON.stringify(fieldsBag());
+
+  useEffect(() => {
+    loadDraft(DRAFT_KEY).then((d) => { if (d) setRecovered(d); }).catch(() => {});
+  }, [DRAFT_KEY]);
+
+  useEffect(() => {
+    if (recovered) return; // hold off while a recovery decision is pending
+    const draft = buildDraft();
+    const meaningful = isDraftMeaningful(draft, pristineRef.current!);
+    const t = setTimeout(() => {
+      if (meaningful) saveDraft(DRAFT_KEY, draft).then(() => setDraftSavedAt(draft.savedAt)).catch(() => {});
+      // Only clear a draft we actually wrote this session — never wipe a prior
+      // draft during the pristine-mount window before recovery is offered.
+      else if (draftSavedAt != null) clearDraft(DRAFT_KEY).then(() => setDraftSavedAt(null)).catch(() => {});
+    }, 1000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recovered, kind, story, snapshot, output, tajukKerja, bil, tarikhISO, waktuMula, waktuTamat, cuacaPagi, cuacaPetang, diaryHtml, memoType, mBil, noRujukan, mTarikhISO, daripada, kepada, projek, mTajuk, tuan, namaTtd, jawatanTtd, unitTtd, emelTtd, sk, lbDisiplin, lbTajukLajur, entries, memoHtml, mmTitle, mmTajuk, mmNamaKon, mmNoSeb, mmTMulaISO, mmTTamatISO, mmTarikhISO, mmMasa, mmTempat, mmBil, chair, utmA, konA, sigs, minitHtml]);
 
   async function onMpp(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -254,6 +319,9 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
           : { notes: story, mmTitle, mmTajuk, mmTarikhISO };
       await saveArchivedDoc({ title, kind: activeKind, html_path: fullPath, public_url: publicUrl, project_name: tajukKerja || projek || mmTajuk, source_payload: sourcePayload });
       setSaveStatus('saved');
+      // Persisted server-side now — drop the local recovery draft.
+      clearDraft(DRAFT_KEY).catch(() => {});
+      setDraftSavedAt(null);
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (err) {
       setError(
@@ -273,6 +341,19 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
     <div style={{ background: '#fff', borderRight: '1px solid var(--line)', padding: '20px 22px', overflowY: 'auto' }}>
       <div style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 16, marginBottom: 3, color: 'var(--maroon)' }}>Jana Dokumen</div>
       <p style={{ color: 'var(--muted)', fontSize: 12, margin: '0 0 16px', lineHeight: 1.5 }}>Maklumat rasmi (No. Rujukan, Bil, tarikh, nama) anda isi — AI draf badan &amp; jadual sahaja.</p>
+
+      {recovered && (
+        <div style={{ background: '#fff8f0', border: '1px solid #e9c6a8', borderLeft: '4px solid var(--gold)', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
+          <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--maroon)', marginBottom: 3 }}>Draf belum disimpan dijumpai</div>
+          <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5, marginBottom: 10 }}>
+            Kerja terakhir anda (termasuk gambar) dari {new Date(recovered.savedAt).toLocaleString('ms-MY', { dateStyle: 'medium', timeStyle: 'short' })} masih tersimpan pada peranti ini. Pulihkan atau mula semula?
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-primary" style={{ padding: '6px 14px', fontSize: 12.5 }} onClick={restoreDraft}>Pulihkan</button>
+            <button className="btn" style={{ padding: '6px 14px', fontSize: 12.5 }} onClick={discardDraft}>Buang</button>
+          </div>
+        </div>
+      )}
 
       <div className="field">
         <div className="seg">
@@ -466,6 +547,11 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
         <button className="btn btn-primary" style={{ width: '100%', padding: '11px 0', fontSize: 14 }} onClick={onGenerate} disabled={busy || !story}>
           {busy ? 'Menjana… (backend mungkin sedang bangun ~30s)' : 'Jana Dokumen'}
         </button>
+        {draftSavedAt && !recovered && (
+          <p style={{ margin: '8px 0 0', fontSize: 11, color: 'var(--muted)', textAlign: 'center' }}>
+            Draf disimpan automatik · {new Date(draftSavedAt).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        )}
       </div>
 
       {error && <div className="err" style={{ marginTop: 12 }}>{error}</div>}
