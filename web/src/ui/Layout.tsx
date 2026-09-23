@@ -1,116 +1,123 @@
-import { ReactNode, useState } from 'react';
-import { useAuth } from './AuthProvider';
-
-export type Page = 'dashboard' | 'studio' | 'library' | 'cmgd';
-
-interface NavItem { id: Page; label: string; short: string }
-const NAV: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard',     short: 'DB' },
-  { id: 'studio',    label: 'Jana Dokumen',  short: 'JD' },
-  { id: 'library',   label: 'Arkib Dokumen', short: 'AD' },
-  { id: 'cmgd',      label: 'CMGD',          short: 'CG' },
+import { ReactNode, useState } from "react";
+import { useAuth } from "./AuthProvider";
+import { Icon } from "./Icons";
+export type Page = "dashboard" | "studio" | "library" | "cmgd";
+const NAV: { id: Page; label: string }[] = [
+  { id: "dashboard", label: "Ringkasan" },
+  { id: "studio", label: "Jana dokumen" },
+  { id: "library", label: "Arkib dokumen" },
+  { id: "cmgd", label: "Jejak CMGD" },
 ];
-
-export function Layout({ page, onNavigate, children }: { page: Page; onNavigate: (p: Page) => void; children: ReactNode }) {
+export function Layout({
+  page,
+  onNavigate,
+  children,
+}: {
+  page: Page;
+  onNavigate: (p: Page) => void;
+  children: ReactNode;
+}) {
   const { user, signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
-
-  const avatarUrl: string | undefined = user?.user_metadata?.['avatar_url'];
-  const fullName: string | undefined = user?.user_metadata?.['full_name'];
-
+  const fullName = user?.user_metadata?.["full_name"] as string | undefined;
+  const name = fullName || user?.email?.split("@")[0] || "Pengguna";
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Top header */}
-      <header style={{ background: 'linear-gradient(180deg,var(--maroon),#5c0a23)', color: '#fff', display: 'flex', alignItems: 'center', gap: 14, padding: '10px 18px', boxShadow: '0 2px 10px rgba(0,0,0,.2)', zIndex: 20, flexShrink: 0 }}>
-        <img src="/utm-logo.png" alt="UTM" style={{ height: 36, width: 36, objectFit: 'contain', background: '#fff', borderRadius: 8, padding: 3, flexShrink: 0 }} />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 15, lineHeight: 1.2 }}>Sistem Dokumen Tapak</div>
-          <div style={{ fontSize: 11, opacity: 0.8 }}>UTM · Jabatan TNC (Pembangunan)</div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-          <div className="header-user-text" style={{ textAlign: 'right', fontSize: 12, minWidth: 0 }}>
-            <div style={{ fontWeight: 600, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fullName ?? user?.email?.split('@')[0]}</div>
-            <div style={{ opacity: 0.7, fontSize: 10.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</div>
+    <div className={`workspace${collapsed ? " sidebar-collapsed" : ""}`}>
+      <a className="skip-link" href="#main-content">
+        Langkau ke kandungan
+      </a>
+      <aside className="workspace-sidebar">
+        <div className="brand">
+          <img src="/utm-logo.png" alt="UTM" />
+          <div className="sidebar-label">
+            <strong>
+              Dokumen Tapak<span>Ruang kerja UTM</span>
+            </strong>
           </div>
-          {avatarUrl && (
-            <img src={avatarUrl} alt="" style={{ height: 30, width: 30, borderRadius: '50%', border: '2px solid rgba(255,255,255,.4)' }} />
-          )}
-          <button onClick={signOut} style={{ background: 'rgba(255,255,255,.15)', borderTop: '1px solid rgba(255,255,255,.3)', borderRight: '1px solid rgba(255,255,255,.3)', borderBottom: '1px solid rgba(255,255,255,.3)', borderLeft: '1px solid rgba(255,255,255,.3)', color: '#fff', borderRadius: 8, padding: '5px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'inherit' }}>
-            Log Keluar
-          </button>
         </div>
-      </header>
-      <div style={{ height: 3, background: 'var(--gold)', flexShrink: 0 }} />
-
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Sidebar */}
-        <aside className="layout-sidebar" style={{ width: collapsed ? 54 : 200, minWidth: collapsed ? 54 : 200, background: '#fff', borderRight: '1px solid var(--line)', display: 'flex', flexDirection: 'column', transition: 'width .2s, min-width .2s', overflow: 'hidden', flexShrink: 0 }}>
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            title={collapsed ? 'Buka sidebar' : 'Tutup sidebar'}
-            style={{ background: 'none', borderTop: 'none', borderRight: 'none', borderBottom: '1px solid var(--line)', borderLeft: 'none', cursor: 'pointer', padding: '9px 0', textAlign: 'center', color: 'var(--muted)', fontSize: 15, lineHeight: 1, width: '100%' }}
-          >
-            {collapsed ? '›' : '‹'}
-          </button>
-          <nav style={{ flex: 1, paddingTop: 6 }}>
-            {NAV.map((n) => (
-              <button
-                key={n.id}
-                onClick={() => onNavigate(n.id)}
-                title={collapsed ? n.label : undefined}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  padding: collapsed ? '12px 0' : '12px 16px',
-                  justifyContent: collapsed ? 'center' : 'flex-start',
-                  background: page === n.id ? 'rgba(122,12,46,.07)' : 'transparent',
-                  borderTop: 'none',
-                  borderRight: 'none',
-                  borderBottom: 'none',
-                  borderLeft: page === n.id ? '3px solid var(--maroon)' : '3px solid transparent',
-                  cursor: 'pointer',
-                  color: page === n.id ? 'var(--maroon)' : 'var(--ink)',
-                  fontWeight: page === n.id ? 700 : 500,
-                  fontSize: 13,
-                  fontFamily: 'inherit',
-                  whiteSpace: 'nowrap',
-                  transition: 'background .12s',
-                }}
-              >
-                {collapsed
-                  ? <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.03em' }}>{n.short}</span>
-                  : <span>{n.label}</span>
-                }
-              </button>
-            ))}
-          </nav>
-          {!collapsed && (
-            <div style={{ padding: '10px 16px 14px', borderTop: '1px solid var(--line)', fontSize: 10, color: 'var(--muted)', lineHeight: 1.6 }}>
-              Oleh <b style={{ color: 'var(--maroon)' }}>Daniel Dun</b><br />
-              untuk <b style={{ color: 'var(--maroon)' }}>Hadirah</b>
-            </div>
-          )}
-        </aside>
-
-        {/* Main content */}
-        <main className="layout-main" style={{ flex: 1, minWidth: 0, padding: '22px 22px 40px', overflowY: 'auto', background: 'var(--paper)' }}>
-          {children}
-        </main>
-      </div>
-
-      {/* Mobile bottom nav */}
-      <div className="mob-nav">
-        <div className="mob-nav-inner">
+        <div className="sidebar-caption sidebar-label">RUANG KERJA</div>
+        <nav aria-label="Navigasi utama">
           {NAV.map((n) => (
-            <button key={n.id} className={`mob-nav-btn${page === n.id ? ' active' : ''}`} onClick={() => onNavigate(n.id)}>
-              <span className="mob-nav-ico">{n.short}</span>
-              <span>{n.label}</span>
+            <button
+              key={n.id}
+              className={`nav-link${page === n.id ? " active" : ""}`}
+              aria-current={page === n.id ? "page" : undefined}
+              aria-label={n.label}
+              title={collapsed ? n.label : undefined}
+              onClick={() => onNavigate(n.id)}
+            >
+              <Icon name={n.id} />
+              <span className="sidebar-label">{n.label}</span>
             </button>
           ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="sidebar-note sidebar-label">
+            <span className="status-dot" /> Sistem dokumen dalaman
+            <p>Jabatan TNC (Pembangunan)</p>
+          </div>
+          <div className="account">
+            <span className="avatar">{name.slice(0, 1).toUpperCase()}</span>
+            <div className="sidebar-label account-name">
+              <strong>{name}</strong>
+              <span>{user?.email}</span>
+            </div>
+            <button
+              className="icon-button"
+              title="Log keluar"
+              aria-label="Log keluar"
+              onClick={signOut}
+            >
+              <Icon name="logout" size={18} />
+            </button>
+          </div>
         </div>
+      </aside>
+      <div className="workspace-body">
+        <header className="workspace-topbar">
+          <div className="breadcrumb">
+            <button
+              className="icon-button sidebar-toggle"
+              aria-label={collapsed ? "Buka sidebar" : "Tutup sidebar"}
+              aria-expanded={!collapsed}
+              onClick={() => setCollapsed(!collapsed)}
+            >
+              <Icon name="chevron" />
+            </button>
+            <span>Ruang kerja</span>
+            <span className="breadcrumb-divider">/</span>
+            <strong>{NAV.find((n) => n.id === page)?.label}</strong>
+          </div>
+          <span className="topbar-meta">UTM · Pembangunan</span>
+          <button
+            className="icon-button mobile-signout"
+            aria-label="Log keluar"
+            onClick={signOut}
+          >
+            <Icon name="logout" />
+          </button>
+        </header>
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className={`workspace-main${page === "studio" ? " workspace-main-studio" : ""}`}
+        >
+          <div className="page-container">{children}</div>
+        </main>
       </div>
+      <nav className="mobile-nav" aria-label="Navigasi mudah alih">
+        {NAV.map((n) => (
+          <button
+            key={n.id}
+            aria-current={page === n.id ? "page" : undefined}
+            className={page === n.id ? "active" : ""}
+            onClick={() => onNavigate(n.id)}
+          >
+            <Icon name={n.id} size={20} />
+            <span>{n.label}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }
