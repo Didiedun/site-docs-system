@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect, useRef, ChangeEvent } from 'react';
 import { uploadDocumentFile, saveArchivedDoc, SessionExpiredError } from '../infrastructure/supabase/repositories';
 import { loadDraft, saveDraft, clearDraft, isDraftMeaningful, DRAFT_VERSION, type DraftData } from './draftStore';
+import { downscaleToJpeg } from './imageResize';
 
 import { MEMO_TYPES } from '../domain/memoTypes';
 import { ProgrammeSnapshot } from '../domain/entities';
@@ -171,11 +172,12 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
   function setEntryCatatan(id: number, v: string) { setEntries((p) => p.map((e) => (e.id === id ? { ...e, catatan: v } : e))); }
   function addEntryPhotos(id: number, ev: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(ev.target.files || []);
-    Promise.all(files.map((f) => new Promise<Photo>((resolve) => {
-      const r = new FileReader();
-      r.onload = () => resolve({ name: f.name, dataUrl: String(r.result) });
-      r.readAsDataURL(f);
-    }))).then((loaded) => setEntries((p) => p.map((e) => (e.id === id ? { ...e, photos: [...e.photos, ...loaded] } : e))));
+    ev.target.value = ''; // let the same file be re-picked after a delete
+    Promise.all(files.map(async (f) => ({ name: f.name, dataUrl: await downscaleToJpeg(f) })))
+      .then((loaded) => setEntries((p) => p.map((e) => (e.id === id ? { ...e, photos: [...e.photos, ...loaded] } : e))));
+  }
+  function removeEntryPhoto(id: number, index: number) {
+    setEntries((p) => p.map((e) => (e.id === id ? { ...e, photos: e.photos.filter((_, i) => i !== index) } : e)));
   }
 
   const lbPayload = () => ({ entries: entries.map((e) => ({ catatan: e.catatan, photos: e.photos })), disiplin: lbDisiplin, tajukLajur: lbTajukLajur });
@@ -504,7 +506,18 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
             <div key={e.id} className="field" style={{ border: '1px solid #e6e0d8', borderRadius: 9, padding: 10 }}>
               <label>Baris {idx + 1}</label>
               <input type="file" accept="image/*" multiple onChange={(ev) => addEntryPhotos(e.id, ev)} />
-              {e.photos.length > 0 && <p className="hint">{e.photos.length} gambar</p>}
+              {e.photos.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                  {e.photos.map((ph, i) => (
+                    <div key={i} style={{ position: 'relative' }}>
+                      <img src={ph.dataUrl} alt={ph.name} title={ph.name}
+                        style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 6, border: '1px solid #e6e0d8', display: 'block' }} />
+                      <button type="button" onClick={() => removeEntryPhoto(e.id, i)} title={`Buang ${ph.name}`}
+                        style={{ position: 'absolute', top: -6, right: -6, width: 18, height: 18, borderRadius: '50%', border: 'none', background: 'var(--maroon)', color: '#fff', fontSize: 12, lineHeight: '18px', padding: 0, cursor: 'pointer' }}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <textarea style={{ minHeight: 56, marginTop: 6 }} value={e.catatan} onChange={(ev) => setEntryCatatan(e.id, ev.target.value)} />
               <button className="btn" style={{ padding: '4px 10px', marginTop: 6 }} onClick={() => removeEntry(e.id)}>Buang baris</button>
             </div>
