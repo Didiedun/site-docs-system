@@ -26,3 +26,10 @@ keyboard dialog behaviour, CMGD date calculation, reusable project profiles,
 failed regeneration preserving edits, archive save retries, draft recovery,
 and WCAG A/AA automated accessibility checks. Iframe document contents are
 excluded from the shell accessibility scan and should be checked separately.
+
+Run `node web/qa/auth.smoke.mjs` from the repository root to exercise the real
+AuthProvider with a mocked Supabase client. It checks Google domain hints,
+provider-verified UTM identity, spoofed profile metadata, OAuth and network
+errors, 404/crash recovery, and desktop/mobile login accessibility.
+The workspace suite also holds generation requests open to check the loading
+animation, disabled preview actions, mobile preview and reduced-motion mode.

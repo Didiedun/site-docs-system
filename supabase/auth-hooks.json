@@ -1,0 +1,6 @@
+{
+  "hook_before_user_created_enabled": true,
+  "hook_before_user_created_uri": "pg-functions://postgres/public/before_utm_user_created",
+  "hook_custom_access_token_enabled": true,
+  "hook_custom_access_token_uri": "pg-functions://postgres/public/utm_access_token"
+}

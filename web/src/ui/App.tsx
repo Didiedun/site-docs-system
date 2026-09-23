@@ -5,6 +5,7 @@ import { Layout, type Page } from "./Layout";
 import { Dashboard } from "./Dashboard";
 import { DocumentStudio } from "./DocumentStudio";
 import { DocumentLibrary } from "./DocumentLibrary";
+import { ErrorPage } from "./ErrorPage";
 import { CMGDTracker } from "./CMGDTracker";
 const PAGE_TITLE: Record<Page, string> = {
   dashboard: "Ringkasan",
@@ -15,13 +16,17 @@ const PAGE_TITLE: Record<Page, string> = {
 
 export default function App() {
   const { user, loading } = useAuth();
-  const readPage = (): Page => {
+  const readPage = (): Page | "not-found" => {
     const value = window.location.hash.slice(1);
     return Object.prototype.hasOwnProperty.call(PAGE_TITLE, value)
       ? (value as Page)
-      : "dashboard";
+      : !value ||
+          /^(access_token|error|code)=/.test(value) ||
+          value === "main-content"
+        ? "dashboard"
+        : "not-found";
   };
-  const [page, setPage] = useState<Page>(readPage);
+  const [page, setPage] = useState<Page | "not-found">(readPage);
   const previousPage = useRef(page);
   const navigate = (next: Page) => {
     window.location.hash = next;
@@ -46,7 +51,9 @@ export default function App() {
       ? "Memuatkan…"
       : !user
         ? "Log Masuk"
-        : PAGE_TITLE[page];
+        : page === "not-found"
+          ? "Halaman tidak dijumpai"
+          : PAGE_TITLE[page];
     document.title = `${section} · Sistem Dokumen Tapak`;
   }, [page, user, loading]);
 
@@ -72,6 +79,7 @@ export default function App() {
     );
 
   if (!user) return <LoginPage />;
+  if (page === "not-found") return <ErrorPage notFound />;
 
   return (
     <Layout page={page} onNavigate={navigate}>

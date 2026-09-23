@@ -1,5 +1,6 @@
 import { ReactNode, useState } from "react";
 import { useAuth } from "./AuthProvider";
+import { ErrorNotice } from "./WorkspaceUI";
 import { Icon } from "./Icons";
 export type Page = "dashboard" | "studio" | "library" | "cmgd";
 const NAV: { id: Page; label: string }[] = [
@@ -17,13 +18,20 @@ export function Layout({
   onNavigate: (p: Page) => void;
   children: ReactNode;
 }) {
-  const { user, signOut } = useAuth();
+  const { user, signOut, error: authError } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const fullName = user?.user_metadata?.["full_name"] as string | undefined;
   const name = fullName || user?.email?.split("@")[0] || "Pengguna";
   return (
     <div className={`workspace${collapsed ? " sidebar-collapsed" : ""}`}>
-      <a className="skip-link" href="#main-content">
+      <a
+        className="skip-link"
+        href="#main-content"
+        onClick={(event) => {
+          event.preventDefault();
+          document.getElementById("main-content")?.focus();
+        }}
+      >
         Langkau ke kandungan
       </a>
       <aside className="workspace-sidebar">
@@ -102,7 +110,10 @@ export function Layout({
           tabIndex={-1}
           className={`workspace-main${page === "studio" ? " workspace-main-studio" : ""}`}
         >
-          <div className="page-container">{children}</div>
+          <div className="page-container">
+            {authError && <ErrorNotice message={authError} />}
+            {children}
+          </div>
         </main>
       </div>
       <nav className="mobile-nav" aria-label="Navigasi mudah alih">

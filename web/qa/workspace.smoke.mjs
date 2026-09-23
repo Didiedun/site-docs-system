@@ -77,6 +77,8 @@ const cmgd = [
     dlp_end_date: "2027-02-01",
   },
 ];
+let releaseGeneration;
+let holdGeneration = false;
 let failGenerate = false,
   failLists = false,
   failSave = false,
@@ -85,7 +87,12 @@ await page.route("**/*", async (route) => {
   const url = new URL(route.request().url());
   if (url.pathname.endsWith("/health"))
     return route.fulfill({ json: { status: "ok" } });
-  if (url.pathname.endsWith("/generate"))
+  if (url.pathname.endsWith("/generate")) {
+    assert.equal(route.request().headers().authorization, "Bearer qa-token");
+    if (holdGeneration)
+      await new Promise((resolve) => {
+        releaseGeneration = resolve;
+      });
     return route.fulfill(
       failGenerate
         ? { status: 503, json: { error: "test failure" } }
@@ -99,6 +106,7 @@ await page.route("**/*", async (route) => {
             },
           },
     );
+  }
   if (
     url.origin === new URL(baseURL).origin ||
     url.hostname.endsWith("googleapis.com") ||
@@ -107,16 +115,26 @@ await page.route("**/*", async (route) => {
     return route.continue();
   return route.abort();
 });
-await page.route("**/src/ui/AuthProvider.tsx", (route) =>
+await page.route(/\/src\/ui\/AuthProvider\.tsx(?:\?.*)?$/, (route) =>
   route.fulfill({
     contentType: "application/javascript",
     body: `export function AuthProvider({children}) {return children;} export function useAuth(){return {user:{id:'ui-test',email:'hadirah@example.test',user_metadata:{full_name:'Hadirah'}},loading:false,signIn:async()=>{},signOut:async()=>{}};}`,
   }),
 );
-await page.route("**/src/infrastructure/supabase/repositories.ts", (route) =>
-  route.fulfill({
-    contentType: "application/javascript",
-    body: `
+await page.route(
+  /\/src\/infrastructure\/supabase\/client\.ts(?:\?.*)?$/,
+  (route) =>
+    route.fulfill({
+      contentType: "application/javascript",
+      body: `export const supabase={auth:{getSession:async()=>({data:{session:{access_token:'qa-token'}}}),refreshSession:async()=>({error:null})}};`,
+    }),
+);
+await page.route(
+  /\/src\/infrastructure\/supabase\/repositories\.ts(?:\?.*)?$/,
+  (route) =>
+    route.fulfill({
+      contentType: "application/javascript",
+      body: `
 async function request(path, init) {const r=await fetch('/__qa/'+path,init);if(!r.ok)throw new Error('Test failure');return r.json();}
 export const supabase={};export class SessionExpiredError extends Error{};export class SupabaseDocumentRepository { async save(d){return d;} }
 export const listArchivedDocs=()=>request('docs');export const listCMGD=()=>request('cmgd');
@@ -125,7 +143,7 @@ export const saveArchivedDoc=d=>request('save',{method:'POST',body:JSON.stringif
 export const getSignedDocUrl=async()=>'/__qa/doc';
 export function cmgdStatus(i){if(i.cmgd_issued_date)return 'issued';const d=Math.ceil((new Date(i.dlp_end_date)-new Date('2026-09-23'))/86400000);return d<0?'overdue':d<=30?'due_soon':'active';}
 `,
-  }),
+    }),
 );
 await page.route("**/__qa/**", async (route) => {
   const path = new URL(route.request().url()).pathname.split("/").pop();
@@ -264,10 +282,35 @@ try {
     .getByLabel("Nota harian (aktiviti, pekerja, isu…)")
     .fill("Pemeriksaan bumbung selesai. Enam pekerja hadir.");
   await page.getByRole("button", { name: "03 Semakan" }).click();
+  holdGeneration = true;
   await page
     .getByRole("button", { name: "Jana dokumen", exact: true })
     .last()
     .click();
+  await page
+    .getByRole("heading", { name: "Menyediakan dokumen anda…" })
+    .waitFor();
+  assert.equal(
+    await page.locator(".preview-content").getAttribute("aria-busy"),
+    "true",
+  );
+  await screenshot("workspace-generation");
+  await audit("generation");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await screenshot("workspace-mobile-generation");
+  assert.equal(await page.locator(".studio-preview").isVisible(), true);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  assert.equal(
+    await page
+      .locator(".generation-paper i")
+      .first()
+      .evaluate((el) => getComputedStyle(el).animationName),
+    "none",
+  );
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  holdGeneration = false;
+  releaseGeneration();
   await page.locator("#diaryFrame").waitFor();
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page
@@ -284,7 +327,7 @@ try {
     .click();
   await page
     .getByText(
-      "Dokumen tidak dapat dijana. Sila cuba lagi. Pratonton terdahulu masih tersedia.",
+      "Dokumen tidak dapat dijana. Sila cuba lagi. Catatan dan pratonton terdahulu dikekalkan.",
     )
     .waitFor();
   assert.match(

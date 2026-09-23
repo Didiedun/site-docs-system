@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { ErrorNotice } from "./WorkspaceUI";
 import { useAuth } from "./AuthProvider";
+import { Icon } from "./Icons";
 
 export function LoginPage() {
-  const { signIn } = useAuth();
-
+  const { signIn, error: authError, retry } = useAuth();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function login() {
@@ -13,34 +13,124 @@ export function LoginPage() {
     try {
       await signIn();
     } catch {
-      setError("Log masuk tidak berjaya. Sila cuba lagi.");
-    } finally {
+      setError("Log masuk tidak berjaya. Semak sambungan anda dan cuba lagi.");
       setBusy(false);
     }
   }
   return (
-    <main className="login-page">
-      <section className="login-card">
-        <img className="login-logo" src="/utm-logo.png" alt="UTM" />
-        <p className="eyebrow">RUANG KERJA · PEMBANGUNAN</p>
-        <h1>
-          Dokumen tapak,
+    <main className="login-shell">
+      <section className="login-story" aria-labelledby="login-story-title">
+        <div className="login-brand">
+          <img src="/utm-logo.png" alt="UTM" />
+          <span>
+            Sistem Dokumen Tapak<small>Jabatan TNC (Pembangunan)</small>
+          </span>
+        </div>
+        <div className="login-intro">
+          <p className="eyebrow">DARI TAPAK KE DOKUMEN RASMI</p>
+          <h1 id="login-story-title">
+            Catatan hari ini.
+            <br />
+            <span>Rekod yang teratur.</span>
+          </h1>
+          <p>
+            Sediakan Site Diary, memo dan minit mesyuarat. Simpan dokumen dan
+            pantau CMGD dalam satu ruang kerja.
+          </p>
+        </div>
+        <div className="login-art" aria-hidden="true">
+          <div className="login-art-caption">
+            <span>RUANG UNTUK KERJA ANDA</span>
+            <span>01 / 03</span>
+          </div>
+          <div className="login-paper-back">
+            <span>MEMO</span>
+            <i />
+            <i />
+            <i />
+          </div>
+          <div className="login-paper-front">
+            <div className="login-paper-head">
+              <span>UTM</span>
+              <span>REKOD TAPAK</span>
+            </div>
+            <strong>Site Diary</strong>
+            <p>Catatan · Kemajuan · Dokumentasi</p>
+            <div className="login-paper-rule" />
+            <div className="login-paper-grid">
+              <i />
+              <i />
+              <i />
+              <i />
+            </div>
+            <div className="login-paper-lines">
+              <i />
+              <i />
+              <i />
+            </div>
+            <div className="login-paper-sign">
+              DISEDIAKAN UNTUK SEMAKAN <span>↗</span>
+            </div>
+          </div>
+        </div>
+        <div className="login-benefits">
+          <span>
+            <Icon name="document" /> Dokumen rasmi
+          </span>
+          <span>
+            <Icon name="clock" /> Draf automatik
+          </span>
+          <span>
+            <Icon name="check" /> Jejak CMGD
+          </span>
+        </div>
+      </section>
+      <section className="login-entry" aria-labelledby="login-title">
+        <div className="login-access">
+          <span className="login-access-dot" /> AKSES AKAUN UTM
+        </div>
+        <div className="login-entry-body">
+          <p className="eyebrow">SELAMAT DATANG</p>
+          <h2 id="login-title">Sambung kerja anda.</h2>
+          <p>
+            Log masuk menggunakan akaun Google UTM anda untuk membuka ruang
+            kerja.
+          </p>
+          <div className="login-domain">
+            <span>Akaun yang dibenarkan</span>
+            <strong>@utm.my</strong>
+          </div>
+          <button className="btn google-login" disabled={busy} onClick={login}>
+            <GoogleIcon />
+            {busy ? "Menyambung ke Google…" : "Log masuk dengan Google"}
+            {!busy && <span aria-hidden="true">→</span>}
+          </button>
+          <p className="login-no-signup">
+            Tiada kata laluan baharu. Tiada borang pendaftaran.
+          </p>
+          {(error || authError) && (
+            <ErrorNotice
+              message={error || authError}
+              retry={authError ? retry : undefined}
+            />
+          )}
+          <details className="login-help">
+            <summary>Perlukan bantuan log masuk?</summary>
+            <p>
+              Pilih akaun yang berakhir dengan <strong>@utm.my</strong> pada
+              skrin Google. Akaun Gmail peribadi dan domain lain tidak mempunyai
+              akses.
+            </p>
+            <p>
+              Jika akaun UTM anda masih tidak dapat masuk, hubungi pentadbir
+              sistem.
+            </p>
+          </details>
+        </div>
+        <p className="login-entry-footer">
+          Universiti Teknologi Malaysia
           <br />
-          lebih teratur.
-        </h1>
-        <p>
-          Sediakan dokumen rasmi, sambung draf dan pantau CMGD dalam satu ruang
-          kerja.
-        </p>
-        <button className="btn" disabled={busy} onClick={login}>
-          <GoogleIcon />
-          {busy ? "Menyambung…" : "Log masuk dengan Google"}
-        </button>
-        {error && <ErrorNotice message={error} />}
-        <p className="login-footer">
-          Untuk akaun yang dibenarkan sahaja.
-          <br />
-          UTM · Jabatan TNC (Pembangunan)
+          <span>Ruang kerja dokumen tapak</span>
         </p>
       </section>
     </main>

@@ -21,6 +21,7 @@ import {
 } from "./draftStore";
 import { downscaleToJpeg } from "./imageResize";
 
+import { GenerationProgress } from "./GenerationProgress";
 import { PageHeading, ErrorNotice } from "./WorkspaceUI";
 import { ProjectProfiles, type ProjectProfile } from "./ProjectProfiles";
 import { MEMO_TYPES } from "../domain/memoTypes";
@@ -119,7 +120,8 @@ export function DocumentStudio({
   const [kind, setKind] = useState<Kind>("diary");
   const [story, setStory] = useState("");
   const [snapshot, setSnapshot] = useState<ProgrammeSnapshot | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [operation, setOperation] = useState<"generate" | "parse" | null>(null);
+  const busy = operation !== null;
   const [error, setError] = useState("");
   const [output, setOutput] = useState("");
 
@@ -478,14 +480,14 @@ export function DocumentStudio({
   async function onMpp(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setBusy(true);
+    setOperation("parse");
     setError("");
     try {
       setSnapshot(await parseProgramme(ports, file));
     } catch (err) {
       setError(err instanceof Error ? err.message : JSON.stringify(err));
     } finally {
-      setBusy(false);
+      setOperation(null);
     }
   }
 
@@ -562,7 +564,8 @@ export function DocumentStudio({
       return;
     }
     captureEdits();
-    setBusy(true);
+    setOperation("generate");
+    setMobileView("preview");
     setError("");
     setSaveStatus("idle");
     try {
@@ -687,11 +690,14 @@ export function DocumentStudio({
       setStep(2);
       setMobileView("preview");
     } catch (err) {
+      setMobileView("form");
       setError(
-        "Dokumen tidak dapat dijana. Sila cuba lagi. Pratonton terdahulu masih tersedia.",
+        err instanceof Error && err.name === "AccessError"
+          ? err.message
+          : "Dokumen tidak dapat dijana. Sila cuba lagi. Catatan dan pratonton terdahulu dikekalkan.",
       );
     } finally {
-      setBusy(false);
+      setOperation(null);
     }
   }
 
@@ -1816,7 +1822,9 @@ export function DocumentStudio({
                 }
               >
                 {busy
-                  ? "Menjana dokumen…"
+                  ? operation === "parse"
+                    ? "Membaca fail MPP…"
+                    : "Menjana dokumen…"
                   : hasDoc
                     ? "Jana semula dokumen"
                     : "Jana dokumen"}
@@ -1824,7 +1832,9 @@ export function DocumentStudio({
             )}
             <p className="save-note" role="status">
               {busy
-                ? "Dokumen sedang disediakan. Ini mungkin mengambil sedikit masa."
+                ? operation === "parse"
+                  ? "Fail MPP sedang dibaca. Sila tunggu."
+                  : "Dokumen sedang disediakan. Ini mungkin mengambil sedikit masa."
                 : saveStatus === "saved"
                   ? "Dokumen disimpan ke arkib."
                   : draftSavedAt && !recovered
@@ -1837,92 +1847,106 @@ export function DocumentStudio({
         </div>
 
         <div className="studio-preview">
-          {!hasDoc ? (
-            <div className="preview-empty">
-              <div className="paper-illustration" aria-hidden="true">
-                <div className="paper-brand" />
-                <div className="paper-line title" />
-                <div className="paper-line" />
-                <div className="paper-line" />
-                <div className="paper-line short" />
-                <br />
-                <div className="paper-line" />
-                <div className="paper-line short" />
-              </div>
-              <h3>Dokumen anda, di sini.</h3>
-              <p>
-                Lengkapkan maklumat dan catatan. Pratonton akan tersedia selepas
-                dokumen dijana.
-              </p>
-              <span className="badge">
-                {kind === "diary"
-                  ? "Site Diary"
-                  : kind === "memo"
-                    ? "Memo"
-                    : "Minit mesyuarat"}{" "}
-                · Format A4
-              </span>
-            </div>
-          ) : (
-            <>
-              <div className="preview-toolbar">
-                <button
-                  className="btn"
-                  disabled={busy || saveStatus === "saving"}
-                  onClick={toggleEdit}
-                >
-                  {editing ? "Selesai edit" : "Edit"}
-                </button>
-                <button className="btn" onClick={() => printFrame(frameId)}>
-                  Cetak / PDF
-                </button>
-                <button
-                  className="btn"
-                  onClick={() =>
-                    saveAsWord(
-                      frameId,
-                      kind === "diary"
-                        ? "site-diary.doc"
-                        : kind === "memo"
-                          ? "memo.doc"
-                          : "minit-mesyuarat.doc",
-                    )
-                  }
-                >
-                  Word
-                </button>
-                <button
-                  className="btn btn-primary"
-                  disabled={
-                    busy || saveStatus === "saving" || saveStatus === "saved"
-                  }
-                  onClick={saveToSystem}
-                >
-                  {saveStatus === "saving"
-                    ? "Menyimpan…"
-                    : saveStatus === "saved"
-                      ? "Disimpan ke arkib"
-                      : saveStatus === "error"
-                        ? "Cuba simpan lagi"
-                        : "Simpan ke arkib"}
-                </button>
-              </div>
-              {saveStatus === "error" && (
-                <ErrorNotice message="Dokumen belum disimpan ke arkib. Cuba simpan semula." />
-              )}
-              <p className="preview-hint">
-                Pratonton terakhir · Jana semula selepas mengubah maklumat.
-              </p>
-              <div className="preview-pages">
-                <iframe
-                  id={frameId}
-                  key={kind}
-                  title={`Pratonton ${kind}`}
-                  srcDoc={activeHtml}
-                />
-              </div>
-            </>
+          {busy && (
+            <GenerationProgress
+              key={operation}
+              parsing={operation === "parse"}
+            />
           )}
+          <div
+            aria-busy={busy}
+            className={
+              busy ? "preview-content is-processing" : "preview-content"
+            }
+            {...(busy ? { inert: "" } : {})}
+          >
+            {!hasDoc ? (
+              <div className="preview-empty">
+                <div className="paper-illustration" aria-hidden="true">
+                  <div className="paper-brand" />
+                  <div className="paper-line title" />
+                  <div className="paper-line" />
+                  <div className="paper-line" />
+                  <div className="paper-line short" />
+                  <br />
+                  <div className="paper-line" />
+                  <div className="paper-line short" />
+                </div>
+                <h3>Dokumen anda, di sini.</h3>
+                <p>
+                  Lengkapkan maklumat dan catatan. Pratonton akan tersedia
+                  selepas dokumen dijana.
+                </p>
+                <span className="badge">
+                  {kind === "diary"
+                    ? "Site Diary"
+                    : kind === "memo"
+                      ? "Memo"
+                      : "Minit mesyuarat"}{" "}
+                  · Format A4
+                </span>
+              </div>
+            ) : (
+              <>
+                <div className="preview-toolbar">
+                  <button
+                    className="btn"
+                    disabled={busy || saveStatus === "saving"}
+                    onClick={toggleEdit}
+                  >
+                    {editing ? "Selesai edit" : "Edit"}
+                  </button>
+                  <button className="btn" onClick={() => printFrame(frameId)}>
+                    Cetak / PDF
+                  </button>
+                  <button
+                    className="btn"
+                    onClick={() =>
+                      saveAsWord(
+                        frameId,
+                        kind === "diary"
+                          ? "site-diary.doc"
+                          : kind === "memo"
+                            ? "memo.doc"
+                            : "minit-mesyuarat.doc",
+                      )
+                    }
+                  >
+                    Word
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    disabled={
+                      busy || saveStatus === "saving" || saveStatus === "saved"
+                    }
+                    onClick={saveToSystem}
+                  >
+                    {saveStatus === "saving"
+                      ? "Menyimpan…"
+                      : saveStatus === "saved"
+                        ? "Disimpan ke arkib"
+                        : saveStatus === "error"
+                          ? "Cuba simpan lagi"
+                          : "Simpan ke arkib"}
+                  </button>
+                </div>
+                {saveStatus === "error" && (
+                  <ErrorNotice message="Dokumen belum disimpan ke arkib. Cuba simpan semula." />
+                )}
+                <p className="preview-hint">
+                  Pratonton terakhir · Jana semula selepas mengubah maklumat.
+                </p>
+                <div className="preview-pages">
+                  <iframe
+                    id={frameId}
+                    key={kind}
+                    title={`Pratonton ${kind}`}
+                    srcDoc={activeHtml}
+                  />
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </>
