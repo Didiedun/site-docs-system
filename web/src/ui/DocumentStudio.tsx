@@ -11,6 +11,30 @@ import { generateMemo, generateMinit, generateSiteDiary, parseProgramme } from '
 type Kind = 'diary' | 'memo' | 'minit';
 type Photo = { name: string; dataUrl: string };
 type LbEntry = { id: number; catatan: string; photos: Photo[] };
+// Short ascending two-tone "ding" on successful save, so users don't have to
+// read "Menyimpan…"→"Tersimpan!" to know it worked. Web Audio = no asset to
+// bundle, works offline; fired from a click so autoplay policy allows it.
+function playSaveChime() {
+  try {
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const ctx = new Ctx();
+    const now = ctx.currentTime;
+    ([[880, 0], [1320, 0.12]] as const).forEach(([freq, t]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, now + t);
+      gain.gain.exponentialRampToValueAtTime(0.2, now + t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + t + 0.18);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now + t);
+      osc.stop(now + t + 0.2);
+    });
+    setTimeout(() => ctx.close(), 600);
+  } catch { /* audio unavailable — stay silent */ }
+}
+
 const HARI = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
 const BULAN = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
 function fromISO(iso: string) {
@@ -321,6 +345,7 @@ export function DocumentStudio({ projectId }: { projectId: string; onSaved?: () 
           : { notes: story, mmTitle, mmTajuk, mmTarikhISO };
       await saveArchivedDoc({ title, kind: activeKind, html_path: fullPath, public_url: publicUrl, project_name: tajukKerja || projek || mmTajuk, source_payload: sourcePayload });
       setSaveStatus('saved');
+      playSaveChime();
       // Persisted server-side now — drop the local recovery draft.
       clearDraft(DRAFT_KEY).catch(() => {});
       setDraftSavedAt(null);
