@@ -33,3 +33,10 @@ provider-verified UTM identity, spoofed profile metadata, OAuth and network
 errors, 404/crash recovery, and desktop/mobile login accessibility.
 The workspace suite also holds generation requests open to check the loading
 animation, disabled preview actions, mobile preview and reduced-motion mode.
+
+Run `node web/qa/templates.smoke.mjs` from the repository root to check the
+template library. It serves the cleaned DOCX files through isolated storage
+responses and verifies all five browser downloads against their SHA-256 manifest,
+search, category filters, empty results, failed-download retries, pending state,
+mobile navigation and desktop/mobile accessibility. It does not authenticate
+against or change live Supabase Storage.

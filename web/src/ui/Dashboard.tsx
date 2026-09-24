@@ -22,7 +22,7 @@ import {
 export function Dashboard({
   onNavigate,
 }: {
-  onNavigate: (p: "cmgd" | "library" | "studio") => void;
+  onNavigate: (p: "cmgd" | "library" | "studio" | "templates") => void;
 }) {
   const { user } = useAuth();
   const [cmgds, setCmgds] = useState<CMGDItem[]>([]);
@@ -115,6 +115,18 @@ export function Dashboard({
           </button>
         </div>
       </section>
+      <button
+        className="template-shortcut"
+        onClick={() => onNavigate("templates")}
+      >
+        <Icon name="templates" size={22} />
+        <span>
+          <strong>Perlukan contoh surat atau borang?</strong>
+          <span>Pilih templat Word dan sesuaikan untuk projek anda.</span>
+        </span>
+        <span className="template-shortcut-label">Buka pustaka</span>
+        <Icon name="arrow" size={18} />
+      </button>
       {error ? (
         <ErrorNotice message={error} retry={reload} />
       ) : (

@@ -6,12 +6,14 @@ import { Dashboard } from "./Dashboard";
 import { DocumentStudio } from "./DocumentStudio";
 import { DocumentLibrary } from "./DocumentLibrary";
 import { ErrorPage } from "./ErrorPage";
+import { TemplateLibrary } from "./TemplateLibrary";
 import { CMGDTracker } from "./CMGDTracker";
 const PAGE_TITLE: Record<Page, string> = {
   dashboard: "Ringkasan",
   studio: "Jana Dokumen",
   library: "Arkib Dokumen",
   cmgd: "CMGD",
+  templates: "Templat & Contoh Surat",
 };
 
 export default function App() {
@@ -91,6 +93,7 @@ export default function App() {
         <DocumentLibrary onCreateNew={() => navigate("studio")} />
       )}
       {page === "cmgd" && <CMGDTracker />}
+      {page === "templates" && <TemplateLibrary />}
     </Layout>
   );
 }

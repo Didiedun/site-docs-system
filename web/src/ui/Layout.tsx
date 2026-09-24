@@ -2,11 +2,12 @@ import { ReactNode, useState } from "react";
 import { useAuth } from "./AuthProvider";
 import { ErrorNotice } from "./WorkspaceUI";
 import { Icon } from "./Icons";
-export type Page = "dashboard" | "studio" | "library" | "cmgd";
+export type Page = "dashboard" | "studio" | "library" | "cmgd" | "templates";
 const NAV: { id: Page; label: string }[] = [
   { id: "dashboard", label: "Ringkasan" },
   { id: "studio", label: "Jana dokumen" },
   { id: "library", label: "Arkib dokumen" },
+  { id: "templates", label: "Templat surat" },
   { id: "cmgd", label: "Jejak CMGD" },
 ];
 export function Layout({
